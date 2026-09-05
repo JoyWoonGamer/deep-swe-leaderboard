@@ -8,11 +8,11 @@ spec:
   requires: ">=2.20.0"
   author:
     name: JoyWoon
-    website: https://github.com/JoyWoon
+    website: https://github.com/JoyWoonGamer
   logo: logo.png
-  homepage: https://github.com/JoyWoon/deep-swe-leaderboard
-  repo: https://github.com/JoyWoon/deep-swe-leaderboard
-  issues: https://github.com/JoyWoon/deep-swe-leaderboard/issues
+  homepage: https://github.com/JoyWoonGamer/deep-swe-leaderboard
+  repo: https://github.com/JoyWoonGamer/deep-swe-leaderboard
+  issues: https://github.com/JoyWoonGamer/deep-swe-leaderboard/issues
   displayName: "DeepSWE 排行榜"
   description: "在 Halo 站点展示 DeepSWE 编程智能体基准测试的实时排行榜（模型 Pass@1 / 成本 / 步数 / 输出 token）"
   version: "1.0.0"
@@ -20,4 +20,4 @@ spec:
   configMapName: deep-swe-leaderboard-config
   license:
     - name: "GPL-3.0"
-      url: "https://github.com/JoyWoon/deep-swe-leaderboard/blob/main/LICENSE"
+      url: "https://github.com/JoyWoonGamer/deep-swe-leaderboard/blob/main/LICENSE"
