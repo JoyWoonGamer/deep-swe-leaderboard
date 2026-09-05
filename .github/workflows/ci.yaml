@@ -11,3 +11,6 @@ on:
 jobs:
   ci:
     uses: halo-sigs/reusable-workflows/.github/workflows/plugin-ci.yaml@v4
+    with:
+      # 纯后端插件，无 console 前端，跳过 node/pnpm 环境与缓存
+      skip-node-setup: true

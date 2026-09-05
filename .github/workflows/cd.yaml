@@ -13,6 +13,8 @@ jobs:
     with:
       # 首次审核前：仅上传 GitHub Release 资产，不同步到应用市场。
       skip-appstore-release: true
+      # 纯后端插件，无 console 前端，跳过 node/pnpm 环境与缓存
+      skip-node-setup: true
       # ------------------------------------------------------------------
       # 首次审核通过后，启用自动同步到应用市场：
       # 1) 以上 with 移除 skip-appstore-release（或置 false）；

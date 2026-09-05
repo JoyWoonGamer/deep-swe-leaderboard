@@ -189,7 +189,7 @@ GET /apis/api.deep-swe-leaderboard.halo.run/v1alpha1/leaderboard/top?size=20
 
 插件内置一个**站点根短链接**排行榜页面，安装启用后访问：
 
-- 页面地址：`/deepswe`（例如 `http://192.168.31.158:8091/deepswe`）
+- 页面地址：`/deepswe`（例如 `http://<halo-host>/deepswe`，`<halo-host>` 替换为你的站点地址）
 - 数据接口：`/apis/api.deep-swe-leaderboard.halo.run/v1alpha1/leaderboard/top?size=N`（匿名可访问）
 
 页面通过 Halo 插件前台页面标准机制渲染，**复用当前主题的页头 / 页脚与页面外壳**（`layout :: html(...)`，主题未提供时用内置 fallback 布局），风格与站点一致。与服务端数据交互特点：
