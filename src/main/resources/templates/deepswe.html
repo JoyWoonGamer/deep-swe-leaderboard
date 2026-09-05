@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: html(head = ~{::head}, content = ~{::content})}">
+<th:block th:fragment="head">
+  <title>DeepSWE 排行榜</title>
+  <meta name="description"
+        content="DeepSWE 编程智能体基准测试排行榜（模型 Pass@1 / 成本 / 输出 Token / Agent 步数）">
+  <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css">
+</th:block>
+<th:block th:fragment="content">
+  <h1 style="font-size:1.6rem;margin:0 0 6px">DeepSWE 排行榜</h1>
+  <p style="color:var(--ds-muted);margin:0 0 4px">DeepSWE 编程智能体基准测试 · 排行榜实时展示</p>
+  <div id="deepsweApp" class="ds-app"></div>
+  <div class="ds-meta" id="dsMeta"></div>
+  <script th:inline="javascript">
+    window.DEEPSWE_DATA = /*[[${deepsweData}]]*/ null;
+    window.DEEPSWE_DEFAULT_VIEW = /*[[${deepsweDefaultView}]]*/ "table";
+  </script>
+  <script src="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.js"></script>
+</th:block>
+</html>

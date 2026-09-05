@@ -1,0 +1,10 @@
+apiVersion: plugin.halo.run/v1alpha1
+kind: ReverseProxy
+metadata:
+  name: plugin-deepswe-leaderboard-fake-reverse-proxy
+  labels:
+    plugin.halo.run/plugin-name: plugin-deepswe-leaderboard
+rules:
+  - path: /**
+    file:
+      directory: static

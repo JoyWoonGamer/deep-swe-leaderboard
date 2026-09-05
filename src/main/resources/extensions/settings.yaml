@@ -1,0 +1,56 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: deep-swe-leaderboard-settings
+spec:
+  forms:
+    - group: deepSwe
+      label: DeepSWE 排行榜设置
+      formSchema:
+        - $formkit: select
+          name: source
+          label: 数据源
+          value: auto
+          options:
+            - label: 自动（实时优先）
+              value: auto
+            - label: GitHub 镜像（需代理）
+              value: mirror
+            - label: DeepSWE 实时（推荐）
+              value: live
+          help: auto 先取 DeepSWE 实时站点（国内可直连），失败再回退到 GitHub 每日镜像（国内需代理）
+        - $formkit: text
+          name: version
+          label: 实时版本号
+          value: v1.1
+          help: 仅当数据源为 live / auto 时使用，可填 v1.1 / v1 / v1.2 等
+        - $formkit: number
+          name: refreshMinutes
+          label: 刷新间隔（分钟）
+          value: 60
+          validation: required|min:1
+        - $formkit: number
+          name: topN
+          label: 默认展示行数
+          value: 20
+          validation: required|min:1
+        - $formkit: select
+          name: defaultView
+          label: 默认排行榜样式
+          value: table
+          options:
+            - label: 经典表格
+              value: table
+            - label: 横向条形榜
+              value: bars
+            - label: 领奖台
+              value: podium
+            - label: 卡片磁贴
+              value: grid
+            - label: Neon 霓虹
+              value: neon
+          help: 前台页面（含 /deepswe 短链接页）初始默认展示的排行榜样式，访问者可手动切换
+        - $formkit: switch
+          name: enabled
+          label: 启用定时刷新
+          value: true

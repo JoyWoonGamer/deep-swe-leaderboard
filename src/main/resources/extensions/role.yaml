@@ -1,0 +1,17 @@
+apiVersion: v1alpha1
+kind: Role
+metadata:
+  name: deep-swe-leaderboard-role-view
+  labels:
+    halo.run/role-template: "true"
+    halo.run/hidden: "true"
+    rbac.authorization.halo.run/aggregate-to-anonymous: "true"
+  annotations:
+    rbac.authorization.halo.run/module: "DeepSWE 排行榜"
+    rbac.authorization.halo.run/display-name: "查看 DeepSWE 排行榜"
+    rbac.authorization.halo.run/ui-permissions: |
+      ["plugin:plugin-deepswe-leaderboard:leaderboard:view"]
+rules:
+  - apiGroups: ["api.deep-swe-leaderboard.halo.run"]
+    resources: ["leaderboard"]
+    verbs: ["get", "list"]
