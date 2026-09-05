@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+  th:replace="~{modules/layout :: layout(_head = null,_content = ~{::content},_title = ${title},page_js = null)}">
+<th:block th:fragment="content">
+  <div class="portfolio-hero">
+    <header
+      th:with="banner_img=${theme.config.index.banner_img},banner_mask_alpha=${theme.config.index.banner_mask_alpha},_title=${title},banner_img_height=100">
+      <th:block th:replace="~{'modules/header'}" />
+    </header>
+    <th:block th:replace="~{'modules/pixel-banner'}"></th:block>
+  </div>
+  <main>
+    <div class="container nopadding-x-md">
+      <div id="board">
+        <div class="container">
+          <div class="row">
+            <div class="col-12 col-md-10 m-auto">
+              <div class="py-4">
+                <h1 class="portfolio-title" th:text="${title}">DeepSWE 排行榜</h1>
+                <p class="text-muted" th:text="${description}">DeepSWE 编程智能体基准测试 · 排行榜实时展示</p>
+                <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css">
+                <div id="deepsweApp" class="ds-app" style="margin-top:.6rem"></div>
+                <div class="ds-meta" id="dsMeta" style="margin-top:1.2rem"></div>
+                <script th:inline="javascript">
+                  window.DEEPSWE_DATA = /*[[${deepsweData}]]*/ null;
+                  window.DEEPSWE_DEFAULT_VIEW = /*[[${deepsweDefaultView}]]*/ "table";
+                </script>
+                <script src="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.js"></script>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <a id="scroll-top-button" aria-label="TOP" href="#" role="button"
+      th:if="${theme.config.global.scroll_top_arrow}">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  </main>
+</th:block>
+</html>
