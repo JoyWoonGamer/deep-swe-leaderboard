@@ -2,7 +2,10 @@ package run.halo.plugin.deepswe.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
@@ -11,62 +14,122 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import run.halo.app.core.extension.endpoint.CustomEndpoint;
 import run.halo.app.extension.GroupVersion;
-import run.halo.app.plugin.ReactiveSettingFetcher;
+import run.halo.plugin.deepswe.LeaderboardConfigService;
 import run.halo.plugin.deepswe.model.LeaderboardEntryVo;
 import run.halo.plugin.deepswe.model.LeaderboardMetaVo;
 import run.halo.plugin.deepswe.model.LeaderboardViewDto;
-import run.halo.plugin.deepswe.service.DeepSweSetting;
-import run.halo.plugin.deepswe.service.LeaderboardService;
+import run.halo.plugin.deepswe.source.LeaderboardRegistry;
+import run.halo.plugin.deepswe.source.LeaderboardSource;
 
 /**
- * 公开 REST 接口，供前台 JS 组件或外部消费（与站点同域，无跨域问题）。
+ * 公开 REST 接口（匿名可访问），供前台 JS 组件或外部消费。
  *
  * <pre>
- * GET /apis/api.deep-swe-leaderboard.halo.run/v1alpha1/leaderboard
+ * GET /apis/api.deep-swe-leaderboard.halo.run/v1alpha1/boards               # 列出所有榜单
+ * GET /apis/api.deep-swe-leaderboard.halo.run/v1alpha1/boards/{board}       # 指定榜单 top
+ * GET /apis/api.deep-swe-leaderboard.halo.run/v1alpha1/boards/{board}/top?size=20
+ * GET /apis/api.deep-swe-leaderboard.halo.run/v1alpha1/leaderboard           # 兼容旧接口（DeepSWE）
  * GET /apis/api.deep-swe-leaderboard.halo.run/v1alpha1/leaderboard/top?size=20
  * </pre>
  */
 @Component
 public class DeepSweEndpoint implements CustomEndpoint {
 
-    private final LeaderboardService service;
-    private final ReactiveSettingFetcher settingFetcher;
+    private final LeaderboardRegistry registry;
+    private final LeaderboardConfigService configService;
 
-    public DeepSweEndpoint(LeaderboardService service, ReactiveSettingFetcher settingFetcher) {
-        this.service = service;
-        this.settingFetcher = settingFetcher;
+    public DeepSweEndpoint(LeaderboardRegistry registry, LeaderboardConfigService configService) {
+        this.registry = registry;
+        this.configService = configService;
     }
 
     @Override
     public RouterFunction<ServerResponse> endpoint() {
         return RouterFunctions.route()
-            .GET("/leaderboard", this::leaderboard)
-            .GET("/leaderboard/top", this::top)
+            .GET("/boards", this::boards)
+            .GET("/boards/{board}", this::board)
+            .GET("/boards/{board}/top", this::boardTop)
+            .GET("/leaderboard", this::legacyLeaderboard)
+            .GET("/leaderboard/top", this::legacyTop)
             .build();
     }
 
-    private Mono<ServerResponse> leaderboard(ServerRequest request) {
-        service.refreshIfNeededAsync();
-        return settingFetcher.fetch(DeepSweSetting.GROUP, DeepSweSetting.class)
-            .defaultIfEmpty(new DeepSweSetting())
-            .flatMap(cfg -> Mono.fromSupplier(() -> buildView(service.top(cfg.topN()))))
-            .flatMap(view -> ServerResponse.ok()
-                .contentType(APPLICATION_JSON)
-                .bodyValue(view));
+    /** 列出所有榜单（含各自 meta 与 top 预览）。 */
+    private Mono<ServerResponse> boards(ServerRequest request) {
+        configService.refresh();
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (LeaderboardSource source : registry.all()) {
+            source.refreshIfNeededAsync(configService.refreshMinutes());
+            LeaderboardMetaVo meta = source.meta();
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", source.id());
+            item.put("name", source.displayName());
+            item.put("description", source.description());
+            item.put("available", meta.isAvailable());
+            item.put("source", meta.getSource());
+            item.put("generatedAt", meta.getGeneratedAt());
+            item.put("fetchedAt", meta.getFetchedAt());
+            item.put("nTasks", meta.getNTasks());
+            item.put("modelCount", meta.getModelCount());
+            item.put("consecutiveFailures", meta.getConsecutiveFailures());
+            item.put("error", meta.getError());
+            item.put("top", source.top(5));
+            list.add(item);
+        }
+        return ServerResponse.ok().contentType(APPLICATION_JSON).bodyValue(list);
     }
 
-    private Mono<ServerResponse> top(ServerRequest request) {
-        service.refreshIfNeededAsync();
-        return settingFetcher.fetch(DeepSweSetting.GROUP, DeepSweSetting.class)
-            .defaultIfEmpty(new DeepSweSetting())
-            .map(cfg -> resolveTopSize(request, cfg.topN()))
-            .flatMap(size -> Mono.fromSupplier(() -> buildView(service.top(size))))
-            .flatMap(view -> ServerResponse.ok()
-                .contentType(APPLICATION_JSON)
-                .bodyValue(view));
+    private Mono<ServerResponse> board(ServerRequest request) {
+        return resolveSource(request)
+            .flatMap(src -> {
+                src.refreshIfNeededAsync(configService.refreshMinutes());
+                return Mono.fromSupplier(() -> buildView(src, src.top(configService.topN())))
+                    .flatMap(view -> ServerResponse.ok().contentType(APPLICATION_JSON).bodyValue(view));
+            });
     }
 
-    private int resolveTopSize(ServerRequest request, int defaultSize) {
+    private Mono<ServerResponse> boardTop(ServerRequest request) {
+        return resolveSource(request)
+            .flatMap(src -> {
+                src.refreshIfNeededAsync(configService.refreshMinutes());
+                int size = resolveSize(request, configService.topN());
+                return Mono.fromSupplier(() -> buildView(src, src.top(size)))
+                    .flatMap(view -> ServerResponse.ok().contentType(APPLICATION_JSON).bodyValue(view));
+            });
+    }
+
+    /** 兼容旧接口：/leaderboard 映射到 deepswe。 */
+    private Mono<ServerResponse> legacyLeaderboard(ServerRequest request) {
+        return registry.get("deepswe")
+            .map(src -> {
+                src.refreshIfNeededAsync(configService.refreshMinutes());
+                return Mono.fromSupplier(() -> buildView(src, src.top(configService.topN())))
+                    .flatMap(view -> ServerResponse.ok().contentType(APPLICATION_JSON).bodyValue(view));
+            })
+            .orElseGet(() -> ServerResponse.ok().contentType(APPLICATION_JSON)
+                .bodyValue(Map.of("available", false, "error", "deepswe source not found")));
+    }
+
+    private Mono<ServerResponse> legacyTop(ServerRequest request) {
+        return registry.get("deepswe")
+            .map(src -> {
+                src.refreshIfNeededAsync(configService.refreshMinutes());
+                int size = resolveSize(request, configService.topN());
+                return Mono.fromSupplier(() -> buildView(src, src.top(size)))
+                    .flatMap(view -> ServerResponse.ok().contentType(APPLICATION_JSON).bodyValue(view));
+            })
+            .orElseGet(() -> ServerResponse.ok().contentType(APPLICATION_JSON)
+                .bodyValue(Map.of("available", false, "error", "deepswe source not found")));
+    }
+
+    private Mono<LeaderboardSource> resolveSource(ServerRequest request) {
+        String board = request.pathVariable("board");
+        return registry.get(board)
+            .map(Mono::just)
+            .orElseGet(() -> Mono.error(new IllegalArgumentException("unknown board: " + board)));
+    }
+
+    private int resolveSize(ServerRequest request, int defaultSize) {
         Integer requested = request.queryParam("size")
             .flatMap(v -> {
                 try {
@@ -82,8 +145,8 @@ public class DeepSweEndpoint implements CustomEndpoint {
         return requested;
     }
 
-    private LeaderboardViewDto buildView(List<LeaderboardEntryVo> rows) {
-        LeaderboardMetaVo meta = service.meta();
+    private LeaderboardViewDto buildView(LeaderboardSource src, List<LeaderboardEntryVo> rows) {
+        LeaderboardMetaVo meta = src.meta();
         LeaderboardViewDto dto = new LeaderboardViewDto();
         dto.setAvailable(meta.isAvailable());
         dto.setSource(meta.getSource());

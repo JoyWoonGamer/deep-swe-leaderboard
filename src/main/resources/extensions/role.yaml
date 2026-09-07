@@ -7,8 +7,8 @@ metadata:
     halo.run/hidden: "true"
     rbac.authorization.halo.run/aggregate-to-anonymous: "true"
   annotations:
-    rbac.authorization.halo.run/module: "DeepSWE 排行榜"
-    rbac.authorization.halo.run/display-name: "查看 DeepSWE 排行榜"
+    rbac.authorization.halo.run/module: "AI大模型排行榜"
+    rbac.authorization.halo.run/display-name: "查看 AI大模型排行榜"
     rbac.authorization.halo.run/ui-permissions: |
       ["plugin:plugin-deepswe-leaderboard:leaderboard:view"]
 rules:

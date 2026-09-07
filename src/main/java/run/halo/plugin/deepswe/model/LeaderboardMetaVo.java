@@ -13,6 +13,7 @@ public class LeaderboardMetaVo {
     private int rowCount;
     private int modelCount;
     private String error;
+    private int consecutiveFailures;
 
     public boolean isAvailable() {
         return available;
@@ -44,6 +45,14 @@ public class LeaderboardMetaVo {
 
     public String getError() {
         return error;
+    }
+
+    public int getConsecutiveFailures() {
+        return consecutiveFailures;
+    }
+
+    public void setConsecutiveFailures(int consecutiveFailures) {
+        this.consecutiveFailures = consecutiveFailures;
     }
 
     public void setAvailable(boolean available) {

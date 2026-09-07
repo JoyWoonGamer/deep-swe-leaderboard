@@ -5,8 +5,18 @@ metadata:
 spec:
   forms:
     - group: deepSwe
-      label: DeepSWE 排行榜设置
+      label: AI大模型排行榜设置
       formSchema:
+        - $formkit: text
+          name: pageTitle
+          label: 页面标题
+          value: AI大模型排行榜
+          help: 前台排行榜页面（/benchmarks）的大标题与浏览器标签标题，留空则回退为「AI大模型排行榜」
+        - $formkit: text
+          name: pageSubtitle
+          label: 页面副标题
+          value: 聚合展示多个 AI 模型基准排行榜，实时更新
+          help: 前台排行榜页面标题下方的一行说明文字，留空则回退为默认文案
         - $formkit: select
           name: source
           label: 数据源

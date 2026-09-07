@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: html(head = ~{::head}, content = ~{::content})}">
+<th:block th:fragment="head">
+  <title th:text="${pageTitle ?: 'AI大模型排行榜'}">AI大模型排行榜</title>
+  <meta name="description" th:content="${pageSubtitle ?: '聚合展示多个 AI 模型基准排行榜，实时更新'}">
+  <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css">
+  <style>
+    .bm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+    .bm-card { display: flex; flex-direction: column; border: 1px solid var(--ds-line); border-radius: 16px; background: var(--ds-surface); padding: 20px; transition: transform .12s ease, border-color .12s ease; }
+    .bm-card:hover { transform: translateY(-3px); border-color: var(--ds-accent); }
+    .bm-title { font-size: 18px; font-weight: 800; color: var(--ds-ink); margin: 0 0 4px; }
+    .bm-desc { font-size: 13px; color: var(--ds-muted); margin: 0 0 14px; line-height: 1.5; }
+    .bm-top { list-style: none; margin: 0 0 14px; padding: 0; flex: 1; }
+    .bm-top li { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--ds-grid-line); font-size: 13.5px; color: var(--ds-ink); }
+    .bm-top li:last-child { border-bottom: none; }
+    .bm-rank { width: 22px; height: 22px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; flex: none; background: var(--ds-soft); color: var(--ds-muted); }
+    .bm-rank.n1 { background: linear-gradient(135deg, #fdebb3, var(--ds-gold)); color: #3a2500; }
+    .bm-rank.n2 { background: linear-gradient(135deg, #f1f4f9, var(--ds-silver)); color: #2d3646; }
+    .bm-rank.n3 { background: linear-gradient(135deg, #f6d9bf, var(--ds-bronze)); color: #3a2500; }
+    .bm-model { flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bm-score { font-weight: 800; color: var(--ds-accent); font-variant-numeric: tabular-nums; }
+    .bm-foot { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--ds-muted); }
+    .bm-link { display: inline-block; padding: 7px 16px; border-radius: 9px; background: var(--ds-accent); color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; }
+    .bm-link:hover { filter: brightness(1.08); }
+    .bm-stale { color: var(--ds-warn); font-weight: 600; }
+    .bm-err { color: var(--ds-warn); }
+  </style>
+</th:block>
+<th:block th:fragment="content">
+  <div class="ds-wrap">
+    <div class="ds-head">
+      <h1 th:text="${pageTitle ?: 'AI大模型排行榜'}">AI大模型排行榜</h1>
+      <p class="ds-lead"
+         th:text="${pageSubtitle ?: '聚合展示多个 AI 模型基准排行榜，实时更新'}">
+        聚合展示多个 AI 模型基准排行榜，实时更新</p>
+    </div>
+    <div class="bm-grid">
+      <th:block th:each="b : ${boards}">
+        <div class="bm-card">
+          <h2 class="bm-title" th:text="${b['name']}">排行榜</h2>
+          <p class="bm-desc" th:text="${b['description']}">简介</p>
+          <th:block th:if="${b['available']}">
+            <ul class="bm-top">
+              <li th:each="r, st : ${b['top']}">
+                <span class="bm-rank" th:classappend="${st.index} == 0 ? 'n1' : (${st.index} == 1 ? 'n2' : (${st.index} == 2 ? 'n3' : ''))"
+                      th:text="${st.index + 1}">1</span>
+                <span class="bm-model" th:text="${r.displayName}">模型</span>
+                <span class="bm-score" th:text="${r.passRatePct} + '%'">0%</span>
+              </li>
+            </ul>
+            <div class="bm-foot">
+              <span th:text="${b['modelCount']} + ' 个模型'">N 个模型</span>
+              <a class="bm-link" th:href="@{/benchmarks/{id}(id=${b['id']})}">查看完整榜单 →</a>
+            </div>
+          </th:block>
+          <th:block th:unless="${b['available']}">
+            <p class="bm-err" th:text="${b['error'] ?: '数据加载中…'}">加载中</p>
+            <div class="bm-foot">
+              <a class="bm-link" th:href="@{/benchmarks/{id}(id=${b['id']})}">进入 →</a>
+            </div>
+          </th:block>
+        </div>
+      </th:block>
+    </div>
+  </div>
+</th:block>
+</html>

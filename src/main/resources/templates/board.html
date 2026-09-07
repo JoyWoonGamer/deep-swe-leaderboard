@@ -2,9 +2,8 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout :: html(head = ~{::head}, content = ~{::content})}">
 <th:block th:fragment="head">
-  <title th:text="${(boardData != null and boardData['name'] != null ? boardData['name'] : 'DeepSWE') + ' 排行榜 · ' + (pageTitle ?: 'AI大模型排行榜')}">排行榜</title>
-  <meta name="description"
-        content="DeepSWE 编程智能体基准测试排行榜（模型 Pass@1 / 成本 / 输出 Token / Agent 步数）">
+  <title th:text="${(boardData != null and boardData['name'] != null ? boardData['name'] : '排行榜') + ' 排行榜 · ' + (pageTitle ?: 'AI大模型排行榜')}">排行榜</title>
+  <meta name="description" th:content="${description}">
   <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css">
 </th:block>
 <th:block th:fragment="content">
@@ -12,8 +11,8 @@
     <div class="ds-head">
       <a class="ds-back" th:href="@{/benchmarks}"
          th:text="'← 返回' + (pageTitle ?: 'AI大模型排行榜')">← 返回排行榜</a>
-      <h1 th:text="${boardData != null and boardData['name'] != null ? boardData['name'] + ' 排行榜' : 'DeepSWE 排行榜'}">DeepSWE 排行榜</h1>
-      <p class="ds-lead" th:text="${description}">DeepSWE 编程智能体基准测试 · 排行榜实时展示</p>
+      <h1 th:text="${(boardData != null and boardData['name'] != null ? boardData['name'] : '排行榜') + ' 排行榜'}">排行榜</h1>
+      <p class="ds-lead" th:text="${description}">排行榜简介</p>
     </div>
     <div id="deepsweApp" class="ds-app"></div>
     <div class="ds-meta" id="dsMeta"></div>

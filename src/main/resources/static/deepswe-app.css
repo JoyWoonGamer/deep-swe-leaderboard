@@ -18,6 +18,8 @@
 }
 .ds-wrap { max-width: 1080px; margin: 0 auto; padding: 40px 20px 64px; }
 .ds-head { margin-bottom: 6px; }
+.ds-back { display: inline-block; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: var(--ds-muted); text-decoration: none; }
+.ds-back:hover { color: var(--ds-accent); }
 .ds-head h1 { margin: 0 0 6px; font-size: 30px; line-height: 1.25; letter-spacing: .2px; color: var(--ds-ink); }
 .ds-lead { margin: 0; color: var(--ds-muted); }
 .ds-meta { color: var(--ds-muted); font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; margin: 10px 0 18px; padding: 10px 14px; border: 1px solid var(--ds-line); border-radius: 12px; background: var(--ds-glow); }

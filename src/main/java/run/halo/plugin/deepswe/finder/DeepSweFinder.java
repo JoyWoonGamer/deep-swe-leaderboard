@@ -3,37 +3,63 @@ package run.halo.plugin.deepswe.finder;
 import java.util.List;
 import reactor.core.publisher.Mono;
 import run.halo.app.theme.finders.Finder;
+import run.halo.plugin.deepswe.LeaderboardConfigService;
 import run.halo.plugin.deepswe.model.LeaderboardEntryVo;
 import run.halo.plugin.deepswe.model.LeaderboardMetaVo;
-import run.halo.plugin.deepswe.service.LeaderboardService;
+import run.halo.plugin.deepswe.source.LeaderboardRegistry;
+import run.halo.plugin.deepswe.source.LeaderboardSource;
 
 /**
- * 向主题模板暴露的 Finder。
- * 模板中可这样使用：
+ * 向主题模板暴露的多榜 Finder。
  * <pre>
- *   ${deepSwe.meta()}                     元信息
- *   ${deepSwe.top(20)}                    每个模型最佳配置，按分数取前 20
- *   ${deepSwe.all()}                      全部配置行
+ *   ${aiLeaderboards.sources()}                所有榜单 source（含 id/name/meta/top 预览）
+ *   ${aiLeaderboards.meta("deepswe")}          指定榜单元信息
+ *   ${aiLeaderboards.top("deepswe", 20)}       指定榜单 top N
+ *   ${aiLeaderboards.all("deepswe")}           指定榜单全部行
+ *   ${aiLeaderboards.pageTitle()}              后台配置的页面标题（默认「AI大模型排行榜」）
+ *   ${aiLeaderboards.pageSubtitle()}           后台配置的页面副标题
  * </pre>
  */
-@Finder("deepSwe")
+@Finder("aiLeaderboards")
 public class DeepSweFinder {
 
-    private final LeaderboardService service;
+    private final LeaderboardRegistry registry;
+    private final LeaderboardConfigService configService;
 
-    public DeepSweFinder(LeaderboardService service) {
-        this.service = service;
+    public DeepSweFinder(LeaderboardRegistry registry, LeaderboardConfigService configService) {
+        this.registry = registry;
+        this.configService = configService;
     }
 
-    public Mono<LeaderboardMetaVo> meta() {
-        return Mono.fromSupplier(service::meta);
+    public Mono<List<LeaderboardSource>> sources() {
+        return Mono.fromSupplier(registry::all);
     }
 
-    public Mono<List<LeaderboardEntryVo>> top(int n) {
-        return Mono.fromSupplier(() -> service.top(n));
+    /** 后台配置的页面标题，供主题模板复用。 */
+    public Mono<String> pageTitle() {
+        return Mono.fromSupplier(configService::pageTitle);
     }
 
-    public Mono<List<LeaderboardEntryVo>> all() {
-        return Mono.fromSupplier(service::all);
+    /** 后台配置的页面副标题，供主题模板复用。 */
+    public Mono<String> pageSubtitle() {
+        return Mono.fromSupplier(configService::pageSubtitle);
+    }
+
+    public Mono<LeaderboardMetaVo> meta(String id) {
+        return Mono.fromSupplier(() -> registry.get(id)
+            .map(LeaderboardSource::meta)
+            .orElseGet(LeaderboardMetaVo::new));
+    }
+
+    public Mono<List<LeaderboardEntryVo>> top(String id, int n) {
+        return Mono.fromSupplier(() -> registry.get(id)
+            .map(src -> src.top(n))
+            .orElseGet(List::of));
+    }
+
+    public Mono<List<LeaderboardEntryVo>> all(String id) {
+        return Mono.fromSupplier(() -> registry.get(id)
+            .map(LeaderboardSource::all)
+            .orElseGet(List::of));
     }
 }
