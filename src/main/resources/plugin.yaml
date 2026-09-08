@@ -16,7 +16,7 @@ spec:
   issues: https://github.com/JoyWoonGamer/deep-swe-leaderboard/issues
   displayName: "AI大模型排行榜"
   description: "在 Halo 站点聚合展示多个 AI 模型基准排行榜（DeepSWE / SWE-bench / HLE），含聚合首页与各榜单独立分页"
-  version: "1.0.3"
+  version: "1.0.4"
   settingName: deep-swe-leaderboard-settings
   configMapName: deep-swe-leaderboard-config
   license:

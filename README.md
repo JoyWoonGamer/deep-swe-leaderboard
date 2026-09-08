@@ -72,7 +72,7 @@
 ./gradlew build
 ```
 
-产物：`build/libs/plugin-deepswe-leaderboard-1.0.3.jar`
+产物：`build/libs/plugin-deepswe-leaderboard-1.0.4.jar`
 
 > 若使用官方 DevTools（需 Docker）本地联调：`./gradlew haloServer`，然后访问 `http://localhost:8090/console`（admin / admin）。
 

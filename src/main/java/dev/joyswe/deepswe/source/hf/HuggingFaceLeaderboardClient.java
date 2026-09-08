@@ -11,19 +11,33 @@ import reactor.core.publisher.Mono;
 /**
  * HuggingFace Dataset Leaderboard API 客户端。
  *
- * <p>统一接口：{@code GET https://huggingface.co/api/datasets/{owner}/{dataset}/leaderboard}，
- * 返回 [{rank, modelId, value, verified, author{name,avatarUrl}, ...}]。
- * 国内可直连，是解决"数据更新不到"的稳定数据源。</p>
+ * <p>统一接口：{@code GET {host}/api/datasets/{owner}/{dataset}/leaderboard}，
+ * 返回 [{rank, modelId, value, verified, author{name,avatarUrl}, ...}]。</p>
+ *
+ * <p>{@code huggingface.co} 在无代理网络下不可达（被墙），故按顺序尝试国内镜像
+ * {@code hf-mirror.com} 后再回退官方站点，任一路径可用即返回数据。</p>
  */
 public class HuggingFaceLeaderboardClient {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    private static final String[] HOSTS = {
+        "https://hf-mirror.com",
+        "https://huggingface.co"
+    };
+
     private final WebClient webClient = WebClient.create();
 
-    /** 抓取指定数据集的排行榜。失败返回 empty。 */
+    /** 抓取指定数据集的排行榜。所有 host 均失败返回 empty。 */
     public Mono<List<HfEntry>> fetch(String datasetId) {
-        String url = "https://huggingface.co/api/datasets/" + datasetId + "/leaderboard";
+        return fetchFrom(0, datasetId);
+    }
+
+    private Mono<List<HfEntry>> fetchFrom(int idx, String datasetId) {
+        if (idx >= HOSTS.length) {
+            return Mono.empty();
+        }
+        String url = HOSTS[idx] + "/api/datasets/" + datasetId + "/leaderboard";
         return webClient.get()
             .uri(url)
             .retrieve()
@@ -31,8 +45,11 @@ public class HuggingFaceLeaderboardClient {
                 resp -> Mono.error(new IllegalStateException("HTTP " + resp.statusCode() + " " + url)))
             .bodyToMono(String.class)
             .timeout(Duration.ofSeconds(25))
-            .map(body -> parse(body))
-            .onErrorResume(err -> Mono.empty());
+            .flatMap(body -> {
+                List<HfEntry> list = parse(body);
+                return list.isEmpty() ? fetchFrom(idx + 1, datasetId) : Mono.just(list);
+            })
+            .onErrorResume(err -> fetchFrom(idx + 1, datasetId));
     }
 
     private List<HfEntry> parse(String body) {
