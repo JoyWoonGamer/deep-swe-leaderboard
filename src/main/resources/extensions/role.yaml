@@ -12,6 +12,6 @@ metadata:
     rbac.authorization.halo.run/ui-permissions: |
       ["plugin:plugin-deepswe-leaderboard:leaderboard:view"]
 rules:
-  - apiGroups: ["api.deep-swe-leaderboard.halo.run"]
-    resources: ["leaderboard"]
+  - apiGroups: ["api.deep-swe-leaderboard.joyswe.dev"]
+    resources: ["leaderboard", "boards"]
     verbs: ["get", "list"]

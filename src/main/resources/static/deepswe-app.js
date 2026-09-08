@@ -1,7 +1,7 @@
 /* DeepSWE 排行榜前端渲染：DATA 来源 = 服务端 SSR 注入 or /top 接口 */
 (function(){
   var BASE = (window.DEEPSWE_BASE)
-    || "/apis/api.deep-swe-leaderboard.halo.run/v1alpha1/leaderboard";
+    || "/apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/leaderboard";
   var DEFAULT_VIEW = (window.DEEPSWE_DEFAULT_VIEW) || "table";
   var hasStaticData = !!(window.DEEPSWE_DATA && window.DEEPSWE_DATA.rows);
 

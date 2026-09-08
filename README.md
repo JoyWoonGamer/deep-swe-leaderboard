@@ -35,7 +35,7 @@
 ├── gradlew / gradlew.bat
 ├── gradle/wrapper/
 └── src/main
-    ├── java/run/plugin/deepswe
+    ├── java/dev/joyswe/deepswe
     │   ├── DeepSweLeaderboardPlugin.java   # 主类 + @EnableScheduling
     │   ├── config/                          # 设置配置与 ConfigService
     │   ├── service/                         # 设置值类 + 缓存 + 刷新 + 视图计算
@@ -72,7 +72,7 @@
 ./gradlew build
 ```
 
-产物：`build/libs/plugin-deepswe-leaderboard-1.0.1.jar`
+产物：`build/libs/plugin-deepswe-leaderboard-1.0.3.jar`
 
 > 若使用官方 DevTools（需 Docker）本地联调：`./gradlew haloServer`，然后访问 `http://localhost:8090/console`（admin / admin）。
 
@@ -95,51 +95,46 @@
 
 ## 在主题中使用（Finder）
 
-在主题模板里引用（Thymeleaf）：
+插件导出名为 **`aiLeaderboards`**（多榜 Finder）。主题模板里通过它访问所有榜单：
 
 ```html
-<div class="deepswe-board" th:with="meta=${deepSwe.meta()}">
-  <p class="meta">
-    DeepSWE 排行榜
-    <span th:if="${meta.available}">
-      · 任务数 <span th:text="${meta.nTasks}">-</span>
-      · 更新于 <span th:text="${meta.fetchedAt}">-</span>
-    </span>
-    <span th:if="${!meta.available}" th:text="${meta.error ?: '加载中…'}"></span>
+<!-- 取 SWE-bench 榜单 top 20 并渲染表格 -->
+<div class="board" th:with="rows=${aiLeaderboards.top('swebench', 20)}">
+  <p th:if="${aiLeaderboards.meta('swebench').available}">
+    SWE-bench · 任务数 <span th:text="${aiLeaderboards.meta('swebench').nTasks}">-</span>
   </p>
   <table>
     <thead>
-      <tr>
-        <th>#</th><th>模型</th><th>强度</th><th>Pass@1</th><th>成本</th><th>输出token</th><th>步数</th>
-      </tr>
+      <tr><th>#</th><th>模型</th><th>Pass@1</th><th>成本</th></tr>
     </thead>
     <tbody>
-      <tr th:each="row, st : ${deepSwe.top(20)}">
+      <tr th:each="row, st : ${rows}">
         <td th:text="${st.index + 1}"></td>
         <td th:text="${row.displayName}"></td>
-        <td th:text="${row.effort}"></td>
-        <td th:text="${#numbers.formatDecimal(row.passRatePct / 100, 1, 2)}"></td>
+        <td th:text="${row.passRatePct}%"></td>
         <td th:text="'$' + ${#numbers.formatDecimal(row.cost, 1, 2)}"></td>
-        <td th:text="${row.outTok}"></td>
-        <td th:text="${row.steps}"></td>
       </tr>
     </tbody>
   </table>
 </div>
 ```
 
-可用方法：
-- `deepSwe.meta()` → 元信息（`available` / `source` / `fetchedAt` / `generatedAt` / `nTasks` / `modelCount` / `error`）
-- `deepSwe.top(int n)` → 每个模型取最佳配置，按分数取前 n
-- `deepSwe.all()` → 全部配置行（按分数降序）
+可用方法（`id` 为榜单标识：`deepswe` / `swebench` / `hle`）：
+
+- `aiLeaderboards.sources()` → 所有榜单的 `LeaderboardSource` 列表（含 `id` / `displayName` / `description` / `meta`）
+- `aiLeaderboards.meta(id)` → 元信息（`available` / `source` / `fetchedAt` / `generatedAt` / `nTasks` / `modelCount` / `error`）
+- `aiLeaderboards.top(id, n)` → 指定榜单按分数取前 n 行
+- `aiLeaderboards.all(id)` → 指定榜单全部行（按分数降序）
+- `aiLeaderboards.pageTitle()` → 后台配置的页面标题（默认「AI大模型排行榜」）
+- `aiLeaderboards.pageSubtitle()` → 后台配置的页面副标题
 
 行字段：`model` `displayName` `effort` `provider` `passRate` `passRatePct` `ciHalfPct` `cost` `outTok` `steps` `durationSeconds` `nAttempted` `nTasksPassedAny`
 
 ## REST 接口（匿名可访问）
 
 ```
-GET /apis/api.deep-swe-leaderboard.halo.run/v1alpha1/leaderboard
-GET /apis/api.deep-swe-leaderboard.halo.run/v1alpha1/leaderboard/top?size=20
+GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/leaderboard
+GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/leaderboard/top?size=20
 ```
 
 返回 JSON：
@@ -173,7 +168,7 @@ GET /apis/api.deep-swe-leaderboard.halo.run/v1alpha1/leaderboard/top?size=20
 <div id="deepswe"></div>
 <script>
 (async () => {
-  const base = "/apis/api.deep-swe-leaderboard.halo.run/v1alpha1";
+  const base = "/apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1";
   const r = await fetch(`${base}/leaderboard/top?size=20`);
   const d = await r.json();
   const el = document.getElementById("deepswe");
@@ -201,7 +196,7 @@ GET /apis/api.deep-swe-leaderboard.halo.run/v1alpha1/leaderboard/top?size=20
 插件内置一个**站点根短链接**排行榜页面，安装启用后访问：
 
 - 页面地址：`/deepswe`（例如 `http://<halo-host>/deepswe`，`<halo-host>` 替换为你的站点地址）
-- 数据接口：`/apis/api.deep-swe-leaderboard.halo.run/v1alpha1/leaderboard/top?size=N`（匿名可访问）
+- 数据接口：`/apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/leaderboard/top?size=N`（匿名可访问）
 
 页面通过 Halo 插件前台页面标准机制渲染，**复用当前主题的页头 / 页脚与页面外壳**（`layout :: html(...)`，主题未提供时用内置 fallback 布局），风格与站点一致。与服务端数据交互特点：
 
