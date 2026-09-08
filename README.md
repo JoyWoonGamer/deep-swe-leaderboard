@@ -35,12 +35,11 @@
 ├── gradlew / gradlew.bat
 ├── gradle/wrapper/
 └── src/main
-    ├── java/run/halo/plugin/deepswe
+    ├── java/run/plugin/deepswe
     │   ├── DeepSweLeaderboardPlugin.java   # 主类 + @EnableScheduling
-    │   ├── client/DeepSweClient.java       # 双数据源抓取 + 版本探测
-    │   ├── service/
-    │   │   ├── DeepSweSetting.java         # 设置值类
-    │   │   └── LeaderboardService.java     # 缓存 + 刷新 + 视图计算
+    │   ├── config/                          # 设置配置与 ConfigService
+    │   ├── service/                         # 设置值类 + 缓存 + 刷新 + 视图计算
+    │   ├── source/                          # 多数据源（实时/镜像/HF 官方接口）
     │   ├── finder/DeepSweFinder.java       # 主题模板 Finder
     │   ├── controller/
     │   │   ├── DeepSweEndpoint.java       # 公开 REST 接口
@@ -73,7 +72,7 @@
 ./gradlew build
 ```
 
-产物：`build/libs/plugin-deepswe-leaderboard-1.0.0.jar`
+产物：`build/libs/plugin-deepswe-leaderboard-1.0.1.jar`
 
 > 若使用官方 DevTools（需 Docker）本地联调：`./gradlew haloServer`，然后访问 `http://localhost:8090/console`（admin / admin）。
 

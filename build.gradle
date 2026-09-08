@@ -4,8 +4,8 @@ plugins {
     id "run.halo.plugin.devtools" version "0.8.0"
 }
 
-group 'run.halo.plugin'
-version = '1.0.0'
+group 'run.plugin'
+version = '1.0.1'
 
 repositories {
     mavenCentral()
