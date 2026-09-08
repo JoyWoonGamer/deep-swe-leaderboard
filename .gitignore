@@ -43,3 +43,6 @@ application-local.properties
 
 ### 本地 AI 工作目录（记忆/中间产物，不提交）
 .workbuddy/
+
+# 内部部署脚本（内网信息），不入公开仓库
+/scripts/
