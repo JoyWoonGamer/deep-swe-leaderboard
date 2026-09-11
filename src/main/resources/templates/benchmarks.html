@@ -4,7 +4,7 @@
 <th:block th:fragment="head">
   <title th:text="${pageTitle ?: 'AI大模型排行榜'}">AI大模型排行榜</title>
   <meta name="description" th:content="${pageSubtitle ?: '聚合展示多个 AI 模型基准排行榜，实时更新'}">
-  <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css">
+  <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css?version=1.0.4">
   <style>
     .bm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
     .bm-card { display: flex; flex-direction: column; border: 1px solid var(--ds-line); border-radius: 16px; background: var(--ds-surface); padding: 20px; transition: transform .12s ease, border-color .12s ease; }

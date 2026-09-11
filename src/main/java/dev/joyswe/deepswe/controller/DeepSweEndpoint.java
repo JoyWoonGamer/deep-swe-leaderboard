@@ -22,18 +22,18 @@ import dev.joyswe.deepswe.source.LeaderboardRegistry;
 import dev.joyswe.deepswe.source.LeaderboardSource;
 
 /**
- * 公开 REST 接口（匿名可访问），供前台 JS 组件或外部消费。
+ * Public REST endpoint (anonymous access) for leaderboard JS components.
  *
  * <pre>
- * GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/boards               # 列出所有榜单
- * GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/boards/{board}       # 指定榜单 top（?size=N 可选）
- * GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/leaderboard           # 兼容旧接口（DeepSWE）
- * GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/leaderboard/top?size=20
+ * GET .../boards                - list all boards
+ * GET .../boards/{board}?size=N - board top data
+ * GET .../leaderboard           - legacy DeepSWE only
+ * GET .../leaderboard/top       - legacy top with size
  * </pre>
  *
- * <p><b>注意</b>：Halo 安全层对 CustomEndpoint 的匿名放行仅覆盖到路径变量段
- * （{@code /boards/*}），变量后跟额外段（{@code /boards/*/top}）会被拦截并重定向到登录页。
- * 因此所有 size 参数通过 query string 传递，不使用 /top 子路径。</p>
+ * <p>Halo security allows anonymous access only up to the variable segment
+ * (boards/x). Sub-paths like boards/x/top trigger 302 to login.
+ * Size is passed via query string instead.</p>
  */
 @Component
 public class DeepSweEndpoint implements CustomEndpoint {
