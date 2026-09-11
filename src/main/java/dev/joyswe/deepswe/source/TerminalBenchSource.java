@@ -6,8 +6,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,11 +32,6 @@ public class TerminalBenchSource extends AbstractLeaderboardSource {
     private static final String LIVE_URL = "https://www.tbench.ai/";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    /** Next.js RSC flight 片段：self.__next_f.push([1,"..."]（内容为 JSON 转义字符串）。
-     * 结尾格式不稳定（可能带 \n / "); / "]);），因此只捕获到闭合引号为止。 */
-    private static final Pattern FLIGHT_PUSH =
-        Pattern.compile("self\\.__next_f\\.push\\(\\[1,\"((?:[^\"\\\\]|\\\\.)*)\"");
 
     private final WebClient webClient = WebClient.create();
 
@@ -144,7 +137,7 @@ public class TerminalBenchSource extends AbstractLeaderboardSource {
     // ------------------------------------------------------------------
 
     /** 从首页 HTML 解析榜单行（按 rank 升序）。解析失败抛 IllegalStateException。 */
-    static List<TbRow> parseHtmlStatic(String html) {
+    public static List<TbRow> parseHtmlStatic(String html) {
         String flight = concatFlightPayload(html);
         String rowsJson = extractRowsArray(flight);
         JsonNode rowsNode;
@@ -185,7 +178,7 @@ public class TerminalBenchSource extends AbstractLeaderboardSource {
     }
 
     /** 从首页 HTML 解析 leaderboard 的 updated_at（无则 null）。 */
-    static Instant parseUpdatedAtStatic(String html) {
+    public static Instant parseUpdatedAtStatic(String html) {
         try {
             String flight = concatFlightPayload(html);
             String json = extractLeaderboardObject(flight);
@@ -196,12 +189,39 @@ public class TerminalBenchSource extends AbstractLeaderboardSource {
         }
     }
 
-    /** 拼接所有 flight 片段并反转义，得到可检索的 RSC 文本。 */
+    /** 拼接所有 flight 片段并反转义，得到可检索的 RSC 文本。
+     *  <p>线性手工扫描（不用正则），避免 Java regex 对超长 flight 内容灾难性回溯。</p> */
     private static String concatFlightPayload(String html) {
         StringBuilder sb = new StringBuilder(html.length());
-        Matcher m = FLIGHT_PUSH.matcher(html);
-        while (m.find()) {
-            sb.append(unescapeJson(m.group(1)));
+        String marker = "self.__next_f.push([1,\"";
+        int from = 0;
+        while (true) {
+            int start = html.indexOf(marker, from);
+            if (start < 0) {
+                break;
+            }
+            int i = start + marker.length();
+            StringBuilder raw = new StringBuilder();
+            boolean escaped = false;
+            while (i < html.length()) {
+                char c = html.charAt(i);
+                if (escaped) {
+                    // 保留转义对（\" \\ 等），交给 unescapeJson 统一反转义
+                    raw.append('\\').append(c);
+                    escaped = false;
+                    i++;
+                } else if (c == '\\') {
+                    escaped = true;
+                    i++;
+                } else if (c == '"') {
+                    break; // flight 字符串字面量闭合引号
+                } else {
+                    raw.append(c);
+                    i++;
+                }
+            }
+            sb.append(unescapeJson(raw.toString()));
+            from = i + 1;
         }
         if (sb.isEmpty()) {
             throw new IllegalStateException("flight payload not found in tbench.ai page");
@@ -262,7 +282,7 @@ public class TerminalBenchSource extends AbstractLeaderboardSource {
         throw new IllegalStateException("unbalanced leaderboard json");
     }
 
-    /** 反转义 JSON 字符串字面量（\" \\ \/ \n \r \t \uXXXX）。 */
+    /** 反转义 JSON 字符串字面量（\" \\ \/ \n \r \t \u005cXXXX 形式）。 */
     private static String unescapeJson(String s) {
         StringBuilder out = new StringBuilder(s.length());
         for (int i = 0; i < s.length(); i++) {
@@ -316,7 +336,7 @@ public class TerminalBenchSource extends AbstractLeaderboardSource {
     }
 
     /** 原始榜单行（按 rank 升序）。 */
-    record TbRow(int rank, String model, String agent, String reasoningEffort, String modelOrg,
+    public record TbRow(int rank, String model, String agent, String reasoningEffort, String modelOrg,
                  double accuracy, double ciHalf, double costUsd, long outputTokens,
                  long totalTokens, long nTrials, long successes, double avgTrialDurationSec) {
     }
