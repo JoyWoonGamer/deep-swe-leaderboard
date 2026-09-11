@@ -15,7 +15,9 @@
         <div class="row">
           <div class="col-12 col-md-10 m-auto">
             <div class="py-4">
-              <h1 class="portfolio-title" th:text="${(boardData != null and boardData['name'] != null ? boardData['name'] : '排行榜') + ' 排行榜'}">排行榜</h1>
+                <a class="ds-back ds-back-fluid" th:href="@{/benchmarks}"
+                   th:text="'← 返回' + (pageTitle ?: 'AI大模型排行榜')">← 返回排行榜</a>
+                <h1 class="portfolio-title" th:text="${(boardData != null and boardData['name'] != null ? boardData['name'] : '排行榜') + ' 排行榜'}">排行榜</h1>
               <p class="text-muted" th:text="${description}">排行榜简介</p>
               <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css">
               <div id="deepsweApp" class="ds-app" style="margin-top:.6rem"></div>

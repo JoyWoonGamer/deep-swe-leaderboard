@@ -16,6 +16,8 @@
           <div class="row">
             <div class="col-12 col-md-10 m-auto">
               <div class="py-4">
+                <a class="ds-back ds-back-fluid" th:href="@{/benchmarks}"
+                   th:text="'← 返回' + (pageTitle ?: 'AI大模型排行榜')">← 返回排行榜</a>
                 <h1 class="portfolio-title" th:text="${title}">DeepSWE 排行榜</h1>
                 <p class="text-muted" th:text="${description}">DeepSWE 编程智能体基准测试 · 排行榜实时展示</p>
                 <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css">

@@ -137,7 +137,7 @@ public class DeepSwePageRouter {
             card.put("modelCount", meta.getModelCount());
             card.put("nTasks", meta.getNTasks());
             card.put("consecutiveFailures", meta.getConsecutiveFailures());
-            card.put("top", src.top(5));
+            card.put("top", src.top(10)); // 首页卡片至少列出前十
             boards.add(card);
         }
         Map<String, Object> model = new HashMap<>();
