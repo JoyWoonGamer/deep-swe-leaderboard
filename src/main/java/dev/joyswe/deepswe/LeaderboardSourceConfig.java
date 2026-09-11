@@ -10,6 +10,7 @@ import dev.joyswe.deepswe.source.HleSource;
 import dev.joyswe.deepswe.source.LeaderboardRegistry;
 import dev.joyswe.deepswe.source.LeaderboardSource;
 import dev.joyswe.deepswe.source.SweBenchSource;
+import dev.joyswe.deepswe.source.TerminalBenchSource;
 
 /**
  * 装配榜单数据源与注册中心。
@@ -39,6 +40,11 @@ public class LeaderboardSourceConfig {
     @Bean
     public HleSource hleSource(LeaderboardCacheStore cacheStore) {
         return new HleSource(cacheStore);
+    }
+
+    @Bean
+    public TerminalBenchSource terminalBenchSource(LeaderboardCacheStore cacheStore) {
+        return new TerminalBenchSource(cacheStore);
     }
 
     @Bean
