@@ -205,7 +205,7 @@
     }
     statusEl.textContent = "加载中…";
     setStatus("加载中…", true);
-    fetch(BASE+"/top?size="+state.size, {cache:"no-store"})
+    fetch(BASE+"?size="+state.size, {cache:"no-store"})
       .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
       .then(function(d){
         state.last = Date.now();

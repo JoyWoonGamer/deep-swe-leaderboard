@@ -26,11 +26,14 @@ import dev.joyswe.deepswe.source.LeaderboardSource;
  *
  * <pre>
  * GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/boards               # 列出所有榜单
- * GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/boards/{board}       # 指定榜单 top
- * GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/boards/{board}/top?size=20
+ * GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/boards/{board}       # 指定榜单 top（?size=N 可选）
  * GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/leaderboard           # 兼容旧接口（DeepSWE）
  * GET /apis/api.deep-swe-leaderboard.joyswe.dev/v1alpha1/leaderboard/top?size=20
  * </pre>
+ *
+ * <p><b>注意</b>：Halo 安全层对 CustomEndpoint 的匿名放行仅覆盖到路径变量段
+ * （{@code /boards/*}），变量后跟额外段（{@code /boards/*/top}）会被拦截并重定向到登录页。
+ * 因此所有 size 参数通过 query string 传递，不使用 /top 子路径。</p>
  */
 @Component
 public class DeepSweEndpoint implements CustomEndpoint {
@@ -47,8 +50,7 @@ public class DeepSweEndpoint implements CustomEndpoint {
     public RouterFunction<ServerResponse> endpoint() {
         return RouterFunctions.route()
             .GET("/boards", this::boards)
-            .GET("/boards/{board}", this::board)
-            .GET("/boards/{board}/top", this::boardTop)
+            .GET("/boards/{board}", this::board)           // ?size=N optional
             .GET("/leaderboard", this::legacyLeaderboard)
             .GET("/leaderboard/top", this::legacyTop)
             .build();
@@ -79,16 +81,8 @@ public class DeepSweEndpoint implements CustomEndpoint {
         return ServerResponse.ok().contentType(APPLICATION_JSON).bodyValue(list);
     }
 
+    /** 指定榜单 top 数据，支持 ?size=N（Halo 安全层限制：不能用 /top 子路径）。 */
     private Mono<ServerResponse> board(ServerRequest request) {
-        return resolveSource(request)
-            .flatMap(src -> {
-                src.refreshIfNeededAsync(configService.refreshMinutes());
-                return Mono.fromSupplier(() -> buildView(src, src.top(configService.topN())))
-                    .flatMap(view -> ServerResponse.ok().contentType(APPLICATION_JSON).bodyValue(view));
-            });
-    }
-
-    private Mono<ServerResponse> boardTop(ServerRequest request) {
         return resolveSource(request)
             .flatMap(src -> {
                 src.refreshIfNeededAsync(configService.refreshMinutes());
