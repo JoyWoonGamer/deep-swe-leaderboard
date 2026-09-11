@@ -35,6 +35,10 @@
 
 > 榜单详情分页为**每榜一页**，数量随注册榜单增减。当前注册 4 个榜单，实际对外页面 URL 共 **6 个**：
 > `/benchmarks`（首页）、`/benchmarks/deepswe`、`/benchmarks/swebench`、`/benchmarks/hle`、`/benchmarks/tbench`，以及 `/deepswe`（旧短链，内容等同 deepswe 详情页）。
+>
+> **聚合首页卡片按「数据新鲜度」降序排列**（`DeepSwePageRouter.buildIndexModel`）：优先按上游数据生成时间 `generatedAt`，
+> 无生成时间的 HF 榜（SWE-bench / HLE 等）回退到本地成功抓取时间 `fetchedAt`，均无（未就绪）排最后；
+> 每张卡片底部展示「数据更新于 MM-dd HH:mm」标签，方便直观看出哪个榜单最新。
 
 ### 样式说明
 
