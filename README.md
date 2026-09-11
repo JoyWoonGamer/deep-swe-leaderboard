@@ -23,6 +23,27 @@
 - 刷新按钮带 15s 冷却；数据采用 SWR（请求时过期后台异步重拉 + 启动首拉）
 - 纯服务端插件，无需前端子工程
 
+## 前台页面
+
+页面路由由 `DeepSwePageRouter`（`controller/DeepSwePageRouter.java`）暴露，共 **3 类页面 / 3 个模板**：
+
+| 页面 | 路由 | 模板 | 说明 |
+| --- | --- | --- | --- |
+| 聚合首页 | `/benchmarks` | `templates/benchmarks.html` | 网格展示全部榜单卡片（名字 + 简介 + Top5 预览） |
+| 榜单详情分页 | `/benchmarks/{board}` | `templates/board.html` | 复用通用模板渲染单个榜单（5 种视图） |
+| 旧短链兼容页 | `/deepswe` | `templates/deepswe.html` | 兼容老链接，映射到 deepswe 详情页 |
+
+> 榜单详情分页为**每榜一页**，数量随注册榜单增减。当前注册 4 个榜单，实际对外页面 URL 共 **6 个**：
+> `/benchmarks`（首页）、`/benchmarks/deepswe`、`/benchmarks/swebench`、`/benchmarks/hle`、`/benchmarks/tbench`，以及 `/deepswe`（旧短链，内容等同 deepswe 详情页）。
+
+### 样式说明
+
+- 三个页面均提供 **theme-fluid 主题适配模板**（`themes/theme-fluid/` 下 `deepswe.html` / `benchmarks.html` / `board.html`），
+  复制到主题目录 `templates/` 对应同名文件后，页面套用主题外壳（页头 / 横幅 / 页脚），样式完整融入站点。
+- 顶部字体样式（标题/副标题）与 5 种视图样式（表格/条形/领奖台/卡片/霓虹）由 `static/deepswe-app.css` / `deepswe-app.js` 提供。
+- 未做主题适配时（主题无同名模板），插件内置模板（`templates/benchmarks.html` / `board.html`）作为兜底渲染，
+  样式尽力自足（benchmarks 内联卡片样式 + 引用 `deepswe-app.css`），但套不上主题外壳。
+
 ## 预览
 
 ![DeepSWE 排行榜页面预览](docs/leaderboard-preview.png)
@@ -58,7 +79,9 @@
             ├── settings.yaml                # 设置表单（含默认样式）
             ├── role.yaml                    # 角色模板 + 匿名授权
             └── reverse-proxy.yaml           # 静态资源代理（托管 app.js/css）
-└── themes/theme-fluid/deepswe.html   # （可选）theme-fluid 主题对该页面的适配模板（站点侧需复制到主题目录 templates/deepswe.html）
+└── themes/theme-fluid/       # （可选）theme-fluid 主题对 3 个前台页面的适配模板：
+                              #   deepswe.html / benchmarks.html / board.html
+                              #   （站点侧需复制到主题目录 templates/ 下同名文件才生效）
 ```
 
 ## 构建

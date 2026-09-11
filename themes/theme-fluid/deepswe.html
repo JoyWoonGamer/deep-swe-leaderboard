@@ -22,8 +22,9 @@
                 <div id="deepsweApp" class="ds-app" style="margin-top:.6rem"></div>
                 <div class="ds-meta" id="dsMeta" style="margin-top:1.2rem"></div>
                 <script th:inline="javascript">
-                  window.DEEPSWE_DATA = /*[[${deepsweData}]]*/ null;
-                  window.DEEPSWE_DEFAULT_VIEW = /*[[${deepsweDefaultView}]]*/ "table";
+                  window.DEEPSWE_DATA = /*[[${boardData}]]*/ null;
+                  window.DEEPSWE_DEFAULT_VIEW = /*[[${boardDefaultView}]]*/ "table";
+                  window.DEEPSWE_BASE = /*[[${boardBase}]]*/ null;
                 </script>
                 <script src="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.js"></script>
               </div>
