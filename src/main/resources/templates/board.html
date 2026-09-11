@@ -9,8 +9,7 @@
 <th:block th:fragment="content">
   <div class="ds-wrap">
     <div class="ds-head">
-      <a class="ds-back" th:href="@{/benchmarks}"
-         th:text="'← 返回' + (pageTitle ?: 'AI大模型排行榜')">← 返回排行榜</a>
+      <a class="ds-back" th:href="@{/benchmarks}">← 返回排行榜</a>
       <h1 th:text="${(boardData != null and boardData['name'] != null ? boardData['name'] : '排行榜') + ' 排行榜'}">排行榜</h1>
       <p class="ds-lead" th:text="${description}">排行榜简介</p>
     </div>

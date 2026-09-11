@@ -1,6 +1,8 @@
 package dev.joyswe.deepswe.controller;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -134,12 +136,20 @@ public class DeepSwePageRouter {
             card.put("available", meta.isAvailable());
             card.put("source", meta.getSource());
             card.put("generatedAt", meta.getGeneratedAt());
+            card.put("fetchedAt", meta.getFetchedAt());
             card.put("modelCount", meta.getModelCount());
             card.put("nTasks", meta.getNTasks());
             card.put("consecutiveFailures", meta.getConsecutiveFailures());
+            card.put("updatedLabel", buildUpdatedLabel(meta));
             card.put("top", src.top(10)); // 首页卡片至少列出前十
             boards.add(card);
         }
+        // 数据最新的榜单排最前：generatedAt（上游生成时间）优先，
+        // 无则用 fetchedAt（本地最近成功抓取）兜底，均无（未就绪）排最后。
+        boards.sort(Comparator
+            .comparing((Map<String, Object> card) -> freshInstant(card),
+                Comparator.nullsLast(Comparator.reverseOrder()))
+            .thenComparing(card -> (String) card.get("id")));
         Map<String, Object> model = new HashMap<>();
         model.put("title", configService.pageTitle());
         model.put("pageTitle", configService.pageTitle());
@@ -148,6 +158,41 @@ public class DeepSwePageRouter {
         model.put("boards", boards);
         model.put(ModelConst.TEMPLATE_ID, TEMPLATE_ID);
         return model;
+    }
+
+    /** 榜单新鲜度时间：generatedAt（上游生成时间）优先，缺失（HF 榜等）时用 fetchedAt 兜底。 */
+    private static Instant freshInstant(Map<String, Object> card) {
+        String ts = (String) card.get("generatedAt");
+        if (ts == null || ts.isBlank()) {
+            ts = (String) card.get("fetchedAt");
+        }
+        if (ts == null || ts.isBlank()) {
+            return null;
+        }
+        try {
+            return Instant.parse(ts);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /** 前台卡片「数据更新于 …」文案：优先显示上游生成时间，缺省显示抓取时间。 */
+    private static String buildUpdatedLabel(LeaderboardMetaVo meta) {
+        String generated = meta.getGeneratedAt();
+        String fetched = meta.getFetchedAt();
+        String ts = (generated != null && !generated.isBlank()) ? generated : fetched;
+        if (ts == null || ts.isBlank()) {
+            return "暂无更新记录";
+        }
+        try {
+            Instant instant = Instant.parse(ts);
+            java.time.ZoneId zone = java.time.ZoneId.systemDefault();
+            return java.time.format.DateTimeFormatter.ofPattern("MM-dd HH:mm")
+                .withZone(zone)
+                .format(instant);
+        } catch (RuntimeException e) {
+            return ts;
+        }
     }
 
     private Map<String, Object> buildBoardModel(LeaderboardSource src) {

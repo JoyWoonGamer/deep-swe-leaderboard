@@ -25,6 +25,7 @@
     .bm-link:hover { filter: brightness(1.08); }
     .bm-stale { color: var(--ds-warn); font-weight: 600; }
     .bm-err { color: var(--ds-warn); }
+    .bm-updated { font-weight: 600; color: var(--ds-accent); }
   </style>
 </th:block>
 <th:block th:fragment="content">
@@ -50,7 +51,10 @@
               </li>
             </ul>
             <div class="bm-foot">
-              <span th:text="${b['modelCount']} + ' 个模型'">N 个模型</span>
+              <span>
+                <span th:text="${b['modelCount']} + ' 个模型'">N 个模型</span>
+                <span class="bm-updated" th:text="' · 数据更新于 ' + (${b['updatedLabel']} ?: '暂无更新记录')">· 数据更新于 MM-dd HH:mm</span>
+              </span>
               <a class="bm-link" th:href="@{/benchmarks/{id}(id=${b['id']})}">查看完整榜单 →</a>
             </div>
           </th:block>
