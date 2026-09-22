@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import run.halo.app.plugin.PluginsRootGetter;
 import dev.joyswe.deepswe.cache.LeaderboardCacheStore;
+import dev.joyswe.deepswe.source.ArtificialAnalysisSource;
 import dev.joyswe.deepswe.source.DeepSweSource;
 import dev.joyswe.deepswe.source.HleSource;
 import dev.joyswe.deepswe.source.LeaderboardRegistry;
@@ -51,6 +52,11 @@ public class LeaderboardSourceConfig {
     @Bean
     public OpenCompassSource openCompassSource(LeaderboardCacheStore cacheStore) {
         return new OpenCompassSource(cacheStore);
+    }
+
+    @Bean
+    public ArtificialAnalysisSource artificialAnalysisSource(LeaderboardCacheStore cacheStore) {
+        return new ArtificialAnalysisSource(cacheStore);
     }
 
     @Bean
