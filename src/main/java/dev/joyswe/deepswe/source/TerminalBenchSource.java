@@ -61,6 +61,11 @@ public class TerminalBenchSource extends AbstractLeaderboardSource {
     }
 
     @Override
+    public String category() {
+        return "竞技场";
+    }
+
+    @Override
     protected Mono<FetchResult> doFetch() {
         return webClient.get()
             .uri(LIVE_URL)

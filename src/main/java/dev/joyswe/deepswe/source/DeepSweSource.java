@@ -75,6 +75,11 @@ public class DeepSweSource extends AbstractLeaderboardSource {
     }
 
     @Override
+    public String category() {
+        return "竞技场";
+    }
+
+    @Override
     protected Mono<FetchResult> doFetch() {
         return liveOrEmpty(preferredVersion)
             .map(p -> new FetchResult(p, "live"))

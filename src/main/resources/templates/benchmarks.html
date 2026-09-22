@@ -1,15 +1,18 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout :: html(head = ~{::head}, content = ~{::content})}">
 <th:block th:fragment="head">
   <title th:text="${pageTitle ?: 'AI大模型排行榜'}">AI大模型排行榜</title>
   <meta name="description" th:content="${pageSubtitle ?: '聚合展示多个 AI 模型基准排行榜，实时更新'}">
-  <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css?version=1.0.5">
+  <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css?version=1.0.6">
   <style>
     .bm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
     .bm-card { display: flex; flex-direction: column; border: 1px solid var(--ds-line); border-radius: 16px; background: var(--ds-surface); padding: 20px; transition: transform .12s ease, border-color .12s ease; }
     .bm-card:hover { transform: translateY(-3px); border-color: var(--ds-accent); }
     .bm-title { font-size: 18px; font-weight: 800; color: var(--ds-ink); margin: 0 0 4px; }
+    .bm-cat { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; vertical-align: 2px; }
+    .bm-cat.arena { color: #7b3ff2; background: rgba(123, 63, 242, .09); border: 1px solid rgba(123, 63, 242, .34); }
+    .bm-cat.board { color: #0a8f8d; background: rgba(10, 162, 160, .09); border: 1px solid rgba(10, 162, 160, .34); }
     .bm-desc { font-size: 13px; color: var(--ds-muted); margin: 0 0 14px; line-height: 1.5; }
     .bm-top { list-style: none; margin: 0 0 14px; padding: 0; flex: 1; }
     .bm-top li { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--ds-grid-line); font-size: 13.5px; color: var(--ds-ink); }
@@ -18,14 +21,20 @@
     .bm-rank.n1 { background: linear-gradient(135deg, #fdebb3, var(--ds-gold)); color: #3a2500; }
     .bm-rank.n2 { background: linear-gradient(135deg, #f1f4f9, var(--ds-silver)); color: #2d3646; }
     .bm-rank.n3 { background: linear-gradient(135deg, #f6d9bf, var(--ds-bronze)); color: #3a2500; }
-    .bm-model { flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bm-model { flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .bm-model .origin { margin-left: 4px; }
     .bm-score { font-weight: 800; color: var(--ds-accent); font-variant-numeric: tabular-nums; }
-    .bm-foot { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--ds-muted); }
-    .bm-link { display: inline-block; padding: 7px 16px; border-radius: 9px; background: var(--ds-accent); color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; }
+    .bm-foot { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--ds-muted); gap: 8px; }
+    .bm-link { display: inline-block; padding: 7px 16px; border-radius: 9px; background: var(--ds-accent); color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; flex: none; }
     .bm-link:hover { filter: brightness(1.08); }
     .bm-stale { color: var(--ds-warn); font-weight: 600; }
     .bm-err { color: var(--ds-warn); }
     .bm-updated { font-weight: 600; color: var(--ds-accent); }
+    .bm-explain { border: 1px solid var(--ds-line); border-radius: 16px; background: var(--ds-glow); padding: 18px 22px; margin: 18px 0 26px; font-size: 13.5px; color: var(--ds-ink); line-height: 1.75; }
+    .bm-explain h3 { margin: 0 0 8px; font-size: 16px; }
+    .bm-explain ul { margin: 8px 0 0; padding-left: 20px; }
+    .bm-explain li { margin: 4px 0; }
+    .bm-explain .mini { margin: 10px 0 0; font-size: 12.5px; color: var(--ds-muted); }
   </style>
 </th:block>
 <th:block th:fragment="content">
@@ -36,17 +45,35 @@
          th:text="${pageSubtitle ?: '聚合展示多个 AI 模型基准排行榜，实时更新'}">
         聚合展示多个 AI 模型基准排行榜，实时更新</p>
     </div>
+    <div class="bm-explain">
+      <h3>为什么有的榜单全是海外模型、有的全是国产模型？</h3>
+      <p>这里聚合的榜单分属<b>两类不同的参赛池</b>（卡片标题旁有类别标签），并非按国籍筛选：</p>
+      <ul>
+        <li><b>竞技场</b>（DeepSWE / Terminal-Bench）：闭源 API 模型报名参赛，海外厂商（OpenAI / Anthropic / Google）的 API 生态更成熟，因此清一色海外模型；</li>
+        <li><b>评测榜</b>（SWE-bench / HLE / 司南）：开放权重模型自由提交或由评测方统一评测，国产模型（DeepSeek / GLM / Kimi / Qwen）密集上榜。</li>
+      </ul>
+      <p class="mini">每行模型旁的彩色小标签为「地区 · 厂商」归属，方便一眼辨认各榜参赛池构成。</p>
+    </div>
     <div class="bm-grid">
       <th:block th:each="b : ${boards}">
         <div class="bm-card">
-          <h2 class="bm-title" th:text="${b['name']}">排行榜</h2>
+          <h2 class="bm-title">
+            <span th:text="${b['name']}">排行榜</span>
+            <span class="bm-cat"
+                  th:classappend="${b['category'] == '竞技场'} ? 'arena' : 'board'"
+                  th:text="${b['category']}">评测榜</span>
+          </h2>
           <p class="bm-desc" th:text="${b['description']}">简介</p>
           <th:block th:if="${b['available']}">
             <ul class="bm-top">
               <li th:each="r, st : ${b['top']}">
                 <span class="bm-rank" th:classappend="${st.index} == 0 ? 'n1' : (${st.index} == 1 ? 'n2' : (${st.index} == 2 ? 'n3' : ''))"
                       th:text="${st.index + 1}">1</span>
-                <span class="bm-model" th:text="${r.displayName}">模型</span>
+                <span class="bm-model">
+                  <span th:text="${r.displayName}">模型</span>
+                  <span class="origin" th:classappend="${r.region == '中国'} ? 'origin-cn' : (${r.region == '美国'} ? 'origin-us' : (${r.region == '欧洲'} ? 'origin-eu' : (${r.region == '韩国'} ? 'origin-kr' : 'origin-intl')))"
+                        th:text="${r.region} + ' · ' + ${r.vendor}">地区 · 厂商</span>
+                </span>
                 <span class="bm-score" th:text="${r.passRatePct} + '%'">0%</span>
               </li>
             </ul>

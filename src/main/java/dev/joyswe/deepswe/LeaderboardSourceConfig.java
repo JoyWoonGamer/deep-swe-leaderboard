@@ -9,6 +9,7 @@ import dev.joyswe.deepswe.source.DeepSweSource;
 import dev.joyswe.deepswe.source.HleSource;
 import dev.joyswe.deepswe.source.LeaderboardRegistry;
 import dev.joyswe.deepswe.source.LeaderboardSource;
+import dev.joyswe.deepswe.source.OpenCompassSource;
 import dev.joyswe.deepswe.source.SweBenchSource;
 import dev.joyswe.deepswe.source.TerminalBenchSource;
 
@@ -45,6 +46,11 @@ public class LeaderboardSourceConfig {
     @Bean
     public TerminalBenchSource terminalBenchSource(LeaderboardCacheStore cacheStore) {
         return new TerminalBenchSource(cacheStore);
+    }
+
+    @Bean
+    public OpenCompassSource openCompassSource(LeaderboardCacheStore cacheStore) {
+        return new OpenCompassSource(cacheStore);
     }
 
     @Bean

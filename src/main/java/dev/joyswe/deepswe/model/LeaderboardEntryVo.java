@@ -10,6 +10,12 @@ public class LeaderboardEntryVo {
     private String displayName;
     private String effort;
     private String provider;
+    /** 地区归属（中国/美国/欧洲/韩国/国际），由 {@link ModelOriginResolver} 推导，懒计算。 */
+    private String region;
+    /** 厂商归属显示名，懒计算。 */
+    private String vendor;
+    /** 额外一行副信息（如司南的四维度均分），可为 null。 */
+    private String summary;
     private double passRate;
     private int passRatePct;
     private double ciHalfPct;
@@ -37,6 +43,18 @@ public class LeaderboardEntryVo {
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    public void setVendor(String vendor) {
+        this.vendor = vendor;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
     }
 
     public void setPassRate(double passRate) {
@@ -89,6 +107,26 @@ public class LeaderboardEntryVo {
 
     public String getProvider() {
         return provider;
+    }
+
+    /** 懒计算地区归属：空白时按 provider/模型名实时推导并缓存。 */
+    public String getRegion() {
+        if (region == null || region.isBlank()) {
+            region = ModelOriginResolver.resolve(provider, model).region();
+        }
+        return region;
+    }
+
+    /** 懒计算厂商归属：空白时按 provider/模型名实时推导并缓存。 */
+    public String getVendor() {
+        if (vendor == null || vendor.isBlank()) {
+            vendor = ModelOriginResolver.resolve(provider, model).vendor();
+        }
+        return vendor;
+    }
+
+    public String getSummary() {
+        return summary;
     }
 
     public double getPassRate() {

@@ -27,6 +27,14 @@
   function fmt(n){ if(n==null) return "-"; var x=Number(n); if(x>=1e4) return (x/1e3).toFixed(1)+"k"; return x.toLocaleString(); }
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
   function effortRow(r){ return r.effort ? "<small>"+esc(r.effort)+"</small>" : ""; }
+  function summaryRow(r){ return r.summary ? "<small>"+esc(r.summary)+"</small>" : ""; }
+  function originBadge(r){
+    var reg = r.region || "", ven = r.vendor || "";
+    if(!reg && !ven) return "";
+    var map = {中国:"cn",美国:"us",欧洲:"eu",韩国:"kr",国际:"intl"};
+    var cls = map[reg] || "unk";
+    return "<span class='origin origin-"+cls+"'>"+esc(reg ? reg+" · " : "")+esc(ven)+"</span>";
+  }
   function costCls(r){ return (r.cost!=null && r.cost>15) ? " costHigh" : ""; }
   function effTxt(r){ return r.effort ? " · "+esc(r.effort) : ""; }
   function cl(i){ return i===0 ? "n1" : i===1 ? "n2" : i===2 ? "n3" : "other"; }
@@ -41,7 +49,7 @@
       var pct = (r.passRatePct!=null?r.passRatePct:0);
       t += "<tr>"+
         "<td class='rank'>"+m+"</td>"+
-        "<td class='model'>"+esc(r.displayName)+effortRow(r)+"</td>"+
+        "<td class='model'>"+esc(r.displayName)+originBadge(r)+effortRow(r)+summaryRow(r)+"</td>"+
         "<td><div style='display:flex;align-items:center;gap:8px'><div class='barWrap'><div class='bar"+bcl+"' style='width:"+pct+"%'></div></div><span class='num'>"+pct+"%</span></div></td>"+
         "<td class='num"+costCls(r)+"'>$"+((r.cost!=null?r.cost:0).toFixed(2))+"</td>"+
         "<td class='num'>"+fmt(r.outTok)+"</td>"+
@@ -58,7 +66,7 @@
       var bcl = i===0 ? " t1" : i===1 ? " t2" : i===2 ? " t3" : "";
       h += "<div class='barRow'>"+
         "<span class='bDot "+cl(i)+"'>"+(i+1)+"</span>"+
-        "<div class='bName'>"+esc(r.displayName)+effortRow(r)+"</div>"+
+        "<div class='bName'>"+esc(r.displayName)+originBadge(r)+effortRow(r)+summaryRow(r)+"</div>"+
         "<div class='bTrack'><div class='bFill"+bcl+"' style='width:"+pct+"%'></div></div>"+
         "<div class='bVal num'>"+pct+"%</div>"+
         "</div>";
@@ -79,7 +87,7 @@
       p += "<div class='pod "+classes[idx]+"'>"+
         "<small class='label'>"+labels[idx]+"</small>"+
         "<div class='pRank'>"+(idx+1)+"</div>"+
-        "<div class='pName'>"+esc(r.displayName)+"</div>"+
+        "<div class='pName'>"+esc(r.displayName)+originBadge(r)+"</div>"+
         "<div class='pPct num'>"+pct+"%</div>"+
         "<div class='pSub'>cost $"+((r.cost!=null?r.cost:0).toFixed(2))+effTxt(r)+"</div>"+
         "</div>";
@@ -104,7 +112,7 @@
       var pct = (r.passRatePct!=null?r.passRatePct:0);
       h += "<div class='tile'>"+
         "<div class='gTop'><span class='tRank "+cl(i)+"'>"+(i+1)+"</span>"+
-        "<div class='tName'>"+esc(r.displayName)+effortRow(r)+"</div></div>"+
+        "<div class='tName'>"+esc(r.displayName)+originBadge(r)+effortRow(r)+"</div></div>"+
         "<div class='tRingWrap'>"+
           "<div class='ring "+cl(i)+"' style='--p:"+pct+"'><span>"+pct+"%</span></div>"+
           "<div><div class='tPctTxt'>Pass@1</div><div class='tSub'>cost $"+((r.cost!=null?r.cost:0).toFixed(2))+"</div></div>"+
@@ -122,7 +130,7 @@
       var glow = (i<3) ? " glow" : "";
       h += "<div class='ncard"+(i<3?" topN":"")+"'>"+
         "<span class='nrank'>"+(i+1)+"</span>"+
-        "<div class='nname'>"+esc(r.displayName)+effortRow(r)+"</div>"+
+        "<div class='nname'>"+esc(r.displayName)+originBadge(r)+effortRow(r)+"</div>"+
         "<div class='nbar'><div class='fill"+glow+"' style='width:"+pct+"%'></div></div>"+
         "<span class='npct'>"+pct+"%</span>"+
         "</div>";

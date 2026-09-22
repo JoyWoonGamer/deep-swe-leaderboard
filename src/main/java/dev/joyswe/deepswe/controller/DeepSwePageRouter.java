@@ -184,6 +184,7 @@ public class DeepSwePageRouter {
             Map<String, Object> card = new LinkedHashMap<>();
             card.put("id", src.id());
             card.put("name", src.displayName());
+            card.put("category", src.category());
             card.put("description", src.description());
             card.put("available", meta.isAvailable());
             card.put("source", meta.getSource());

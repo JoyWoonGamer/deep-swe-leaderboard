@@ -32,6 +32,16 @@
 #refreshBtn:hover { filter: brightness(1.08); }
 #refreshBtn:disabled { opacity: .55; cursor: not-allowed; filter: none; }
 .status { font-size: 12.5px; color: var(--ds-muted); }
+
+/* 地区归属标签（每行模型名旁：「地区 · 厂商」） */
+.origin { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 1.5; vertical-align: 1px; white-space: nowrap; }
+.origin-cn { color: #c0392b; background: rgba(214, 69, 65, .10); border: 1px solid rgba(214, 69, 65, .38); }
+.origin-us { color: #2f6bff; background: rgba(47, 107, 255, .09); border: 1px solid rgba(47, 107, 255, .34); }
+.origin-eu { color: #7b3ff2; background: rgba(123, 63, 242, .09); border: 1px solid rgba(123, 63, 242, .34); }
+.origin-kr { color: #0a8f8d; background: rgba(10, 162, 160, .09); border: 1px solid rgba(10, 162, 160, .34); }
+.origin-intl, .origin-unk { color: var(--ds-muted); background: var(--ds-soft); border: 1px solid var(--ds-line); }
+.model .origin, .bName .origin, .tName .origin, .nname .origin, .pName .origin { vertical-align: 2px; }
+@media (max-width: 720px) { .origin { margin-left: 4px; padding: 0 6px; font-size: 10px; } }
 .ds-spin { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--ds-soft); border-top-color: var(--ds-accent); border-radius: 50%; vertical-align: -2px; animation: dsSpin .8s linear infinite; }
 @keyframes dsSpin { to { transform: rotate(360deg); } }
 .num { font-variant-numeric: tabular-nums; }

@@ -22,6 +22,15 @@ public interface LeaderboardSource {
     /** 榜单简介，用于首页卡片副标题。 */
     String description();
 
+    /**
+     * 榜单参赛池类别，用于聚合首页自解释「为什么榜单有的偏海外、有的偏国产」：
+     * {@code "竞技场"} = 闭源 API 模型报名参赛（海外 API 生态密集）；
+     * 默认 {@code "评测榜"} = 开放权重提交 / 官方评测（国内外混合）。
+     */
+    default String category() {
+        return "评测榜";
+    }
+
     /** 抓取一次，返回带来源标签的结果。失败应返回 empty，由上层统一记录错误。 */
     Mono<FetchResult> fetch();
 
