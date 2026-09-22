@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout :: html(head = ~{::head}, content = ~{::content})}">
 <th:block th:fragment="head">
   <title th:text="${(boardData != null and boardData['name'] != null ? boardData['name'] : 'DeepSWE') + ' 排行榜 · ' + (pageTitle ?: 'AI大模型排行榜')}">排行榜</title>
   <meta name="description"
         content="DeepSWE 编程智能体基准测试排行榜（模型 Pass@1 / 成本 / 输出 Token / Agent 步数）">
-  <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css?version=1.0.4">
+  <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css?version=1.0.5">
 </th:block>
 <th:block th:fragment="content">
   <div class="ds-wrap">
@@ -21,7 +21,7 @@
       window.DEEPSWE_DEFAULT_VIEW = /*[[${boardDefaultView}]]*/ "table";
       window.DEEPSWE_BASE = /*[[${boardBase}]]*/ null;
     </script>
-    <script src="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.js?version=1.0.4"></script>
+    <script src="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.js?version=1.0.5"></script>
   </div>
 </th:block>
 </html>

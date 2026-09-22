@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="https://www.thymeleaf.org"
   th:replace="~{modules/layout :: layout(_head = null,_content = ~{::content},_title = ${title},page_js = null)}">
 <th:block th:fragment="content">
@@ -19,7 +19,7 @@
                 <a class="ds-back ds-back-fluid" th:href="@{/benchmarks}">← 返回排行榜</a>
                 <h1 class="portfolio-title" th:text="${title}">DeepSWE 排行榜</h1>
                 <p class="text-muted" th:text="${description}">DeepSWE 编程智能体基准测试 · 排行榜实时展示</p>
-                <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css?version=1.0.4">
+                <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css?version=1.0.5">
                 <div id="deepsweApp" class="ds-app" style="margin-top:.6rem"></div>
                 <div class="ds-meta" id="dsMeta" style="margin-top:1.2rem"></div>
                 <script th:inline="javascript">
@@ -27,7 +27,7 @@
                   window.DEEPSWE_DEFAULT_VIEW = /*[[${boardDefaultView}]]*/ "table";
                   window.DEEPSWE_BASE = /*[[${boardBase}]]*/ null;
                 </script>
-                <script src="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.js?version=1.0.4"></script>
+                <script src="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.js?version=1.0.5"></script>
               </div>
             </div>
           </div>

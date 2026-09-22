@@ -43,6 +43,7 @@ public class DeepSwePageRouter {
     private static final String INDEX_TEMPLATE = "benchmarks";
     private static final String BOARD_TEMPLATE = "board";
     private static final String LEGACY_TEMPLATE = "deepswe";
+    private static final String HEALTH_TEMPLATE = "health";
     private static final String TEMPLATE_ID = "plugin:plugin-deepswe-leaderboard:board";
 
     private final LeaderboardRegistry registry;
@@ -61,6 +62,7 @@ public class DeepSwePageRouter {
     public RouterFunction<ServerResponse> deepSwePageRoute() {
         return RouterFunctions.route()
             .GET("/benchmarks", this::renderIndex)
+            .GET("/benchmarks/health", this::renderHealth)
             .GET("/benchmarks/{board}", this::renderBoard)
             .GET("/deepswe", this::renderLegacy)
             .build();
@@ -75,6 +77,55 @@ public class DeepSwePageRouter {
                 log.error("排行榜聚合首页渲染失败", e);
                 return ServerResponse.ok().render(INDEX_TEMPLATE, fallbackModel());
             });
+    }
+
+    /** 数据源健康状态面板：展示每个榜单的可用性/来源/抓取时间/连续失败次数/错误等。 */
+    private Mono<ServerResponse> renderHealth(ServerRequest request) {
+        configService.refresh();
+        return templateNameResolver
+            .resolveTemplateNameOrDefault(request.exchange(), HEALTH_TEMPLATE)
+            .flatMap(templateName -> ServerResponse.ok().render(templateName, buildHealthModel()))
+            .onErrorResume(e -> {
+                log.error("健康面板渲染失败", e);
+                return ServerResponse.ok().render(HEALTH_TEMPLATE, fallbackModel());
+            });
+    }
+
+    /** 健康面板 model：全部数据源的健康状态列表 + 页面标题。 */
+    private Map<String, Object> buildHealthModel() {
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (LeaderboardSource src : registry.all()) {
+            src.refreshIfNeededAsync(configService.refreshMinutes());
+            LeaderboardMetaVo meta = src.meta();
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", src.id());
+            item.put("name", src.displayName());
+            item.put("description", src.description());
+            item.put("available", meta.isAvailable());
+            item.put("source", meta.getSource());
+            item.put("fetchedAt", meta.getFetchedAt());
+            item.put("generatedAt", meta.getGeneratedAt());
+            item.put("nTasks", meta.getNTasks());
+            item.put("modelCount", meta.getModelCount());
+            item.put("rowCount", meta.getRowCount());
+            item.put("consecutiveFailures", meta.getConsecutiveFailures());
+            item.put("error", meta.getError());
+            item.put("updatedLabel", buildUpdatedLabel(meta));
+            // 健康状态：可用=ok；不可用且连续失败>0=err；不可用但未失败（如等待首拉）=warn
+            boolean available = meta.isAvailable();
+            int failures = meta.getConsecutiveFailures();
+            item.put("status", available ? "ok" : (failures > 0 ? "err" : "warn"));
+            item.put("statusText", available ? "正常" : (failures > 0 ? "异常" : "待就绪"));
+            items.add(item);
+        }
+        Map<String, Object> model = new HashMap<>();
+        model.put("title", "数据源健康状态 · " + configService.pageTitle());
+        model.put("pageTitle", "数据源健康状态");
+        model.put("pageSubtitle", "各数据源抓取状态与健康指标一览（用于排查「数据更新不到」问题）");
+        model.put("description", configService.pageSubtitle());
+        model.put("healthItems", items);
+        model.put(ModelConst.TEMPLATE_ID, TEMPLATE_ID);
+        return model;
     }
 
     private Mono<ServerResponse> renderBoard(ServerRequest request) {
@@ -120,6 +171,7 @@ public class DeepSwePageRouter {
         model.put("pageSubtitle", configService.pageSubtitle());
         model.put("description", configService.pageSubtitle());
         model.put("boards", List.of());
+        model.put("healthItems", List.of());
         model.put(ModelConst.TEMPLATE_ID, TEMPLATE_ID);
         return model;
     }

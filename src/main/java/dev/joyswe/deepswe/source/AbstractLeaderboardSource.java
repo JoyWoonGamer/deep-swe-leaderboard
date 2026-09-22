@@ -218,6 +218,11 @@ public abstract class AbstractLeaderboardSource implements LeaderboardSource {
         log.error("[{}] {}", id(), msg, e);
     }
 
+    /** 供子类记录信息级日志（父类 log 为 private，经此处暴露）。 */
+    protected void logInfo(String msg) {
+        log.info("[{}] {}", id(), msg);
+    }
+
     protected Duration timeout() {
         return Duration.ofSeconds(25);
     }

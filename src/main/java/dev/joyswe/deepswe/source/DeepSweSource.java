@@ -32,13 +32,27 @@ public class DeepSweSource extends AbstractLeaderboardSource {
     private static final String LIVE_URL =
         "https://deepswe.datacurve.ai/artifacts/%s/leaderboard-live.json";
 
+    /** 站点数据页：HTML 内嵌版本导航（aria-label="Benchmark version"），可解析出当前全部可用版本。 */
+    private static final String DATA_PAGE_URL =
+        "https://deepswe.datacurve.ai/data/v1.1";
+
     private static final String[] VERSION_FALLBACKS = {"v1.1", "v1", "v1.2", "v2", "v1.0"};
+
+    /** 版本发现结果缓存时长（毫秒）：官方版本季度级变更，6 小时足够且避免每次抓取多一次请求。 */
+    private static final long VERSION_TTL_MS = 6 * 60 * 60 * 1000L;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final WebClient webClient = WebClient.create();
 
     private final String preferredVersion;
+
+    /** 版本发现缓存：volatile 写 + 时间戳判断 TTL。 */
+    private volatile List<String> discoveredVersions = List.of();
+    private volatile long versionsDiscoveredAt;
+    /** 探测防重入（并发保护：同一时刻只发起一次探测）。 */
+    private final java.util.concurrent.atomic.AtomicBoolean versionProbeRunning =
+        new java.util.concurrent.atomic.AtomicBoolean(false);
 
     public DeepSweSource(LeaderboardCacheStore cacheStore, String preferredVersion) {
         super(cacheStore);
@@ -76,18 +90,79 @@ public class DeepSweSource extends AbstractLeaderboardSource {
     }
 
     private Mono<LeaderboardPayload> liveOrEmpty(String preferred) {
+        List<String> versions = buildCandidateVersions(preferred);
+        return Flux.fromIterable(versions)
+            .concatMap(this::fetchFromLive)
+            .next();
+    }
+
+    /** 候选版本顺序：后台手填首选 > 站点探测到的可用版本 > 硬编码兜底列表（均去重）。 */
+    private List<String> buildCandidateVersions(String preferred) {
         List<String> versions = new ArrayList<>();
         if (preferred != null && !preferred.isBlank()) {
             versions.add(preferred.trim());
+        }
+        for (String v : discoverVersions()) {
+            if (!versions.contains(v)) {
+                versions.add(v);
+            }
         }
         for (String v : VERSION_FALLBACKS) {
             if (!versions.contains(v)) {
                 versions.add(v);
             }
         }
-        return Flux.fromIterable(versions)
-            .concatMap(this::fetchFromLive)
-            .next();
+        return versions;
+    }
+
+    /**
+     * 返回当前可用版本列表：缓存有效直接返回；缓存过期时异步发起探测（不阻塞调用线程），
+     * 本次先返回既有缓存/空列表，探测结果下次抓取生效。
+     */
+    private List<String> discoverVersions() {
+        long now = System.currentTimeMillis();
+        if (!discoveredVersions.isEmpty() && now - versionsDiscoveredAt < VERSION_TTL_MS) {
+            return discoveredVersions;
+        }
+        // 缓存过期：非阻塞发起探测（WebFlux event loop 线程不能被 block 污染）。
+        if (versionProbeRunning.compareAndSet(false, true)) {
+            webClient.get()
+                .uri(DATA_PAGE_URL)
+                .retrieve()
+                .bodyToMono(String.class)
+                .timeout(timeout())
+                .map(this::parseVersionsFromHtml)
+                .doOnNext(found -> {
+                    if (!found.isEmpty()) {
+                        discoveredVersions = List.copyOf(found);
+                        versionsDiscoveredAt = System.currentTimeMillis();
+                        logInfo("版本探测成功: " + discoveredVersions);
+                    }
+                })
+                .doFinally(sig -> versionProbeRunning.set(false))
+                .subscribe(null, e -> logError("版本探测失败（使用既有版本列表）", e));
+        }
+        return discoveredVersions;
+    }
+
+    /** 从数据页 HTML 解析版本导航中的版本号列表（去重保序）。 */
+    private List<String> parseVersionsFromHtml(String html) {
+        List<String> found = new ArrayList<>();
+        if (html == null) {
+            return found;
+        }
+        // 版本导航：<a href="/data/v1.1" ...>v1.1 (latest)</a> 或 <a href="/data/v1">v1</a>
+        java.util.regex.Pattern pattern =
+            java.util.regex.Pattern.compile("href=\"/data/(v[^\"?#]+)\"",
+                java.util.regex.Pattern.CASE_INSENSITIVE);
+        java.util.regex.Matcher matcher = pattern.matcher(html);
+        while (matcher.find()) {
+            String v = matcher.group(1);
+            if (!found.contains(v)) {
+                found.add(v);
+            }
+        }
+        return found;
     }
 
     private Mono<LeaderboardPayload> getJson(String url) {

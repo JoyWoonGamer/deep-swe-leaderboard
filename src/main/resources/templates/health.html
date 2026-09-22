@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: html(head = ~{::head}, content = ~{::content})}">
+<th:block th:fragment="head">
+  <title th:text="${pageTitle ?: '数据源健康状态'}">数据源健康状态</title>
+  <meta name="description" th:content="${description}">
+  <link rel="stylesheet" href="/plugins/plugin-deepswe-leaderboard/assets/deepswe-app.css?version=1.0.5">
+  <style>
+    .hs-wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; }
+    .hs-head { margin-bottom: 24px; }
+    .hs-head h1 { margin: 0 0 8px; font-size: 26px; font-weight: 800; color: var(--ds-ink); }
+    .hs-lead { margin: 0; color: var(--ds-muted); font-size: 14px; line-height: 1.6; }
+    .hs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+    .hs-card { border: 1px solid var(--ds-line); border-radius: 16px; background: var(--ds-surface); padding: 18px 20px; }
+    .hs-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .hs-name { font-size: 17px; font-weight: 800; color: var(--ds-ink); }
+    .hs-badge { flex: none; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+    .hs-badge.ok { background: #dcfce7; color: #166534; }
+    .hs-badge.warn { background: #fef3c7; color: #92400e; }
+    .hs-badge.err { background: #fee2e2; color: #991b1b; }
+    .hs-desc { margin: 0 0 14px; font-size: 13px; color: var(--ds-muted); line-height: 1.5; }
+    .hs-list { list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--ds-ink); }
+    .hs-list li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--ds-grid-line); }
+    .hs-list li:last-child { border-bottom: none; }
+    .hs-k { color: var(--ds-muted); flex: none; }
+    .hs-v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; word-break: break-all; }
+    .hs-v.err { color: var(--ds-warn); }
+    .hs-v.ok { color: var(--ds-accent); }
+    .hs-error { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--ds-soft); color: var(--ds-warn); font-size: 12.5px; line-height: 1.5; }
+    .hs-foot { margin-top: 20px; font-size: 12px; color: var(--ds-muted); }
+  </style>
+</th:block>
+<th:block th:fragment="content">
+  <div class="hs-wrap">
+    <div class="hs-head">
+      <a class="ds-back" th:href="@{/benchmarks}">← 返回排行榜</a>
+      <h1 th:text="${pageTitle ?: '数据源健康状态'}">数据源健康状态</h1>
+      <p class="hs-lead" th:text="${pageSubtitle}">各数据源抓取状态与健康指标一览</p>
+    </div>
+    <div class="hs-grid">
+      <th:block th:each="item : ${healthItems}">
+        <div class="hs-card">
+          <div class="hs-top">
+            <span class="hs-name" th:text="${item['name']}">数据源</span>
+            <span class="hs-badge"
+                  th:classappend="' ' + ${item['status']}"
+                  th:text="${item['statusText']}">正常</span>
+          </div>
+          <p class="hs-desc" th:text="${item['description']}">简介</p>
+          <ul class="hs-list">
+            <li><span class="hs-k">数据源</span><span class="hs-v" th:text="${item['source'] ?: '-'}">-</span></li>
+            <li><span class="hs-k">任务数</span><span class="hs-v" th:text="${item['nTasks']}">0</span></li>
+            <li><span class="hs-k">模型数</span><span class="hs-v" th:text="${item['modelCount']}">0</span></li>
+            <li><span class="hs-k">数据行数</span><span class="hs-v" th:text="${item['rowCount']}">0</span></li>
+            <li><span class="hs-k">数据更新于</span><span class="hs-v" th:text="${item['updatedLabel']}">-</span></li>
+            <li>
+              <span class="hs-k">连续失败</span>
+              <span class="hs-v" th:classappend="${item['consecutiveFailures']} > 0 ? ' err' : ' ok'"
+                    th:text="${item['consecutiveFailures']} + ' 次'">0 次</span>
+            </li>
+          </ul>
+          <div class="hs-error" th:if="${item['error'] != null and item['error'] != ''}"
+               th:text="${item['error']}">错误信息</div>
+        </div>
+      </th:block>
+    </div>
+    <div class="hs-foot">
+      <span th:text="'数据源数量: ' + ${healthItems.size()}">数据源数量</span>
+      <span> · 手动刷新：访问任意榜单详情页或后台「刷新」按钮，或等待定时任务（默认 60 分钟）</span>
+    </div>
+  </div>
+</th:block>
+</html>
