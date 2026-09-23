@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+  th:replace="~{modules/layout :: layout(_head = null,_content = ~{::content},_title = ${title},page_js = null)}">
+<th:block th:fragment="content">
+  <style>
+    .portfolio-hero {
+      position: relative;
+    }
+
+    .portfolio-hero .banner-text {
+      position: relative;
+      z-index: 3;
+    }
+  </style>
+
+  <div class="portfolio-hero">
+    <header
+      th:with="banner_img=${theme.config.page.banner_img},banner_mask_alpha=${theme.config.page.banner_mask_alpha},_title=${title},banner_img_height=${#conversions.convert(theme.config.page.banner_img_height, 'java.lang.Integer')}">
+      <th:block th:replace="~{'modules/header'}" />
+    </header>
+    <th:block th:replace="~{'modules/pixel-banner'}"></th:block>
+  </div>
+  <main>
+    <div class="container nopadding-x-md">
+      <div id="board">
+        <div class="container">
+          <div class="row">
+            <div class="col-12 col-md-10 m-auto">
+              <div class="portfolio-header">
+                <h1 class="portfolio-title" th:text="${title}"></h1>
+                <p class="text-muted" th:text="${description}"></p>
+              </div>
+
+              <div class="portfolio-empty" th:if="${projects.items == null || projects.items.isEmpty()}">
+                <p class="text-muted text-center py-5 mb-0">暂无公开项目。</p>
+              </div>
+
+              <div class="row" th:if="${projects.items != null && !projects.items.isEmpty()}">
+                <div class="col-12 col-md-6 col-lg-4 d-flex mb-4"
+                  th:each="project : ${projects.items}">
+                  <div class="card w-100 border-0 shadow-sm portfolio-card">
+                    <a th:if="${project.cover != null && !project.cover.isEmpty()}"
+                      th:href="@{'/portfolio/' + ${project.slug}}">
+                      <img class="card-img-top portfolio-card__cover" th:src="${project.cover}" th:alt="${project.title}">
+                    </a>
+                    <div class="card-body pb-2">
+                      <div class="portfolio-meta mb-2">
+                        <span class="badge badge-pill badge-primary mr-1"
+                          th:text="${platformLabels[project.platform] ?: project.platform}">other</span>
+                        <span class="badge badge-pill badge-secondary mr-1"
+                          th:text="${typeLabels[project.type] ?: project.type}">other</span>
+                        <span class="badge badge-pill badge-warning" th:if="${project.featured}">推荐</span>
+                      </div>
+                      <h2 class="h5 card-title mb-1">
+                        <a th:href="@{'/portfolio/' + ${project.slug}}" th:text="${project.title}">项目标题</a>
+                      </h2>
+                      <p class="card-text text-muted small" th:text="${project.summary}">项目摘要</p>
+                      <div th:if="${project.techStacks != null && !project.techStacks.isEmpty()}">
+                        <span class="badge badge-light mr-1" th:each="stack : ${project.techStacks}"
+                          th:text="${stack}">Java</span>
+                      </div>
+                    </div>
+                    <div class="card-footer bg-white border-top-0 d-flex flex-wrap">
+                      <a class="mr-3" th:href="@{'/portfolio/' + ${project.slug}}">详情</a>
+                      <a class="mr-3" th:if="${project.repoUrl != null && !project.repoUrl.isEmpty()}"
+                        th:href="${project.repoUrl}" target="_blank" rel="noopener">仓库</a>
+                      <a th:if="${project.demoUrl != null && !project.demoUrl.isEmpty()}"
+                        th:href="${project.demoUrl}" target="_blank" rel="noopener">演示</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <nav th:if="${projects.totalPages != null && projects.totalPages > 1}" aria-label="navigation">
+                <span class="pagination" id="pagination">
+                  <a class="extend prev" th:if="${projects.hasPrevious}" rel="prev"
+                    th:href="@{/portfolio(page=${projects.page - 1})}">
+                    <i class="iconfont icon-arrowleft"></i>
+                  </a>
+                  <th:block th:each="index : ${#numbers.sequence(1, projects.totalPages)}">
+                    <span class="page-number current" th:if="${projects.page == index}" th:text="${index}"></span>
+                    <a th:unless="${projects.page == index}" class="page-number" th:href="@{/portfolio(page=${index})}"
+                      th:text="${index}"></a>
+                  </th:block>
+                  <a class="extend next" th:if="${projects.hasNext}" rel="next"
+                    th:href="@{/portfolio(page=${projects.page + 1})}">
+                    <i class="iconfont icon-arrowright"></i>
+                  </a>
+                </span>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a id="scroll-top-button" aria-label="TOP" href="#" role="button"
+      th:if="${theme.config.global.scroll_top_arrow}">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  </main>
+</th:block>
+</html>
