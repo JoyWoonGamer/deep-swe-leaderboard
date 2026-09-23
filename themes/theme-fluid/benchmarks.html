@@ -4,7 +4,7 @@
 <th:block th:fragment="content">
   <div class="portfolio-hero">
     <header
-      th:with="banner_img=${theme.config.index.banner_img},banner_mask_alpha=${theme.config.index.banner_mask_alpha},_title=${title},banner_img_height=100">
+      th:with="banner_img=${theme.config.page.banner_img},banner_mask_alpha=${theme.config.page.banner_mask_alpha},_title=${title},banner_img_height=${#conversions.convert(theme.config.page.banner_img_height, 'java.lang.Integer')}">
       <th:block th:replace="~{'modules/header'}" />
     </header>
     <th:block th:replace="~{'modules/pixel-banner'}"></th:block>
